@@ -1,8 +1,9 @@
 # Book Scenes
 
-Book Scenes is an interactive literary commonplace book: a collection of art-directed visual worlds inspired by books that matter to the reader. Each world combines environmental interaction, restrained motion, and passages discovered through objects within the scene.
+Book Scenes is an interactive literary experience and collection of quotes and passages that struck me. Meant to showcase and immerse one in an emotional and visual spectacle of meaningful scenes from the book; relflecting the particular style of the novel. First inspired to be built as I was reading the lush and evocative "Love in the Time of Cholera" by Gabriel García Márquez, its exquisite imagery invited me to attempt putting its inarticulate beauty into images and interactions.
 
-## Technical stack
+
+## Stack
 
 - Vite, React, and TypeScript
 - Semantic HTML for passages and controls
@@ -11,5 +12,6 @@ Book Scenes is an interactive literary commonplace book: a collection of art-dir
 - Selective shaders for atmosphere
 - Three.js for spatial rendering when needed
 
+---
 
-Need to think of a better name lol
+*Need to think of a better project name lol*
