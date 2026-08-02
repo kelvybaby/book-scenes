@@ -10,3 +10,5 @@ Book Scenes is an interactive literary commonplace book: a collection of art-dir
 - Layered 2.5D raster artwork
 - Selective shaders for atmosphere
 - Three.js for spatial rendering when needed
+
+Need to think of a better name lol
