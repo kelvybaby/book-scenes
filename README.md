@@ -1,6 +1,6 @@
 # Book Scenes
 
-Book Scenes is an interactive literary experience and collection of quotes and passages that struck me. Meant to showcase and immerse one in an emotional and visual spectacle of meaningful scenes from the book; relflecting the particular style of the novel. First inspired to be built as I was reading the lush and evocative "Love in the Time of Cholera" by Gabriel García Márquez, its exquisite imagery invited me to attempt putting its inarticulate beauty into images and interactions.
+Book Scenes is an interactive literary experience and collection of quotes and passages that struck me. Meant to showcase and immerse one in an emotional and visual spectacle of meaningful scenes from the book; relflecting the particular style of the novel. First inspired to be built as I was reading the lush and evocative "Love in the Time of Cholera" by Gabriel García Márquez, its exquisite imagery invited me to attempt putting its inarticulate beauty into images, quotes, and interactions.
 
 
 ## Stack

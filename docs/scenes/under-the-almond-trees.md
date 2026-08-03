@@ -1,8 +1,8 @@
-# Scene specification: The Park of Waiting (working title)
+# Scene specification: Under the Almond Trees
 
 ## Status
 
-Concept development. The narrative and interaction intentions are accepted; composition details remain provisional until three visual studies are compared.
+Visual direction approved. [Study O](../../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) is the implementation reference; responsive framing, layer separation, typography, and interaction remain to be proven in the browser.
 
 ## Spoiler boundary
 
@@ -14,7 +14,7 @@ Treat the scene as a compressed memory tableau of the early courtship, not a cla
 
 ## Narrative purpose
 
-Create a place organized around partial sight, correspondence, thresholds, and the distance between two young people. The visitor occupies the relationship between park and house rather than Florentino's body. Both Fermina and Florentino are visibly present but incomplete: recognizably human, compositionally balanced, and never reduced to explanatory portraits.
+Create a place organized around partial sight, correspondence, thresholds, and the distance between two young people. The visitor occupies the relationship between park and house rather than Florentino's body. Both Fermina and Florentino are consciously visible but remain subordinate to the place. Fermina is slightly more legible at the doorway without becoming a portrait.
 
 The scene should be inviting enough to explore and emotionally ambiguous enough not to celebrate obsession uncritically.
 
@@ -28,10 +28,73 @@ The first studies should preserve these details supplied from the text while avo
 - A bright patio whose life is first registered through a woman's voice
 - Almond trees providing shade, yellow falling leaves, and a concealed park bench
 - Dry-season heat, deserted streets, wind-driven dead leaves, and no lush tropical rain sheen
-- Fermina in a blue-striped school uniform, with one thick braid and a bow; later, fresh gardenias may crown her without turning her into a fantasy figure
-- Florentino very thin and timid-looking, with flattened dark hair, myopic eyeglasses, and an inherited black suit made oppressive by the heat
+- Fermina's blue-striped school uniform and single braid remain contextual evidence from an earlier glimpse
+- For the selected composite moment, Fermina sits alone at the doorway beneath the almond trees in a narrow, many-folded Greek-style tunic and a fresh-gardenia garland
+- Florentino is very thin and timid-looking, with flattened dark hair, myopic eyeglasses, and an inherited black suit made oppressive by the heat; these details govern any visible fragment rather than requiring a recognizable depiction
 
 These anchors are visual evidence, not a requirement to show every detail at once.
+
+## Verbatim source excerpts for visual evidence
+
+These fragments are preserved exactly as supplied by the reader. They guide visual interpretation and are separate from the eventual interactive passage set.
+
+> “one of the oldest houses on the Park of the Evangels”
+
+> “it was half in ruins”
+
+> “weeds in the flowerpots and a stone fountain with no water”
+
+> “resembled an abbey cloister”
+
+> “under the arches of the passageway”
+
+> “the brightness in the patio was filled with the voice of a woman”
+
+> “the girl raised her eyes to see who was passing by the window”
+
+> “that casual glance was the beginning of a cataclysm of love”
+
+> “the most hidden bench in the little park”
+
+> “pretending to read a book of verse in the shade of the almond trees”
+
+> “a single thick braid with a bow at the end”
+
+> “her doe’s gait making her seem immune to gravity”
+
+> “very thin, with Indian hair plastered down with scented pomade”
+
+> “eyeglasses for myopia, which added to his forlorn appearance”
+
+> “one black suit, inherited from his dead father”
+
+> “she recognized Florentino Ariza the first time she saw him reading under the trees”
+
+> “the thin, timid, unimpressive sentinel”
+
+> “almost always dressed in black despite the heat”
+
+> “sitting under the almond trees at the doorway”
+
+> “a garland of fresh gardenias that made her look like a crowned goddess”
+
+> “under the shower of yellow leaves falling from the almond trees”
+
+> “the deserted streets in the heat of the dry season”
+
+> “a swirl of dead leaves pulled along by the wind”
+
+> “saw that she and her aunt were sitting under the almond trees at the doorway.”
+
+> “narrow tunic with many folds that fell from her shoulders in the Greek style, and on her head she wore a garland of fresh gardenias that made her look like a crowned goddess.”
+
+> “the aunt put her work on the chair and left her niece alone in the doorway under the shower of yellow leaves falling from the almond trees.”
+
+> “Fermina Daza stood up and then sat in the other chair”
+
+> “Fermina Daza did not look at him, she did not interrupt her embroidering”
+
+> “its interior patio, with weeds in the flowerpots and a stone fountain with no water”
 
 ## Early decay motif
 
@@ -53,13 +116,13 @@ No tutorial overlay, score, mandatory order, or glowing hotspot map.
 ## Camera and framing
 
 - View from the park toward Fermina's house.
-- Camera height approximately seated or slightly lowered.
-- The near foreground includes part of a bench, book, and a partial view of Florentino through silhouette, clothing, hand, or posture.
+- Use a wider third-person view set apart from Florentino; never frame the scene over his shoulder.
+- Place Florentino and his bench in the left or left-middle foreground/midground. His complete seated silhouette may be visible, but it remains small relative to the house and trees.
 - Vegetation frames rather than hides the principal architecture.
 - The house sits across a breathable middle distance.
-- A courtyard opening, door, window, or adjoining path holds a partial but unmistakable view of Fermina.
+- The doorway beneath the almond trees holds a small, partial view of Fermina seated alone under falling yellow leaves.
 - The view is slightly oblique and observed, not a perfectly symmetrical elevation.
-- The composition gives neither figure a detailed face or overwhelming visual dominance.
+- Neither face becomes a focal portrait. Small identifying details may resolve on inspection, while architecture, light, leaves, and negative space dominate the first reading.
 
 ## Depth layers
 
@@ -72,30 +135,39 @@ No tutorial overlay, score, mandatory order, or glowing hotspot map.
 ### House
 
 - Warm weathered façade
+- Human-scaled, irregular, and residential rather than monumental or palatial
 - Shutters, doors, courtyard depth, and iron or wood details
+- A doorway shaded by almond branches, with room for Fermina to sit naturally at the threshold
+- Two chairs at the threshold: Fermina occupies one while the empty chair faces her and retains the aunt's absence
+- Layered arches and passageways leading toward the bright patio without turning the façade into a grand civic arcade
+- The dry stone fountain belongs inside the visible patio, never in the park or street
 - Telegraph wire crossing or leaving the composition
 - One future evening light source
 
 ### Square and park
 
-- Worn path, ground texture, trunks, low planting, and spatial gaps
+- A legible park boundary made by curb, low planting, path, or change of ground material
+- Worn paths, ground texture, trunks, and planting that integrate the bench into the park
+- A distinct street separates the park from the house and remains visibly crossable
 - Evidence of the city without crowding the emotional axis
 
 ### Foreground
 
-- Bench edge
-- Closed or partly open book
+- Almond foliage and an open view into the park
+- Florentino's bench and partly open book at a comfortable camera distance
 - Concealed letter possibility
 - Leaves, flowers, cloth, or shadow masking layer boundaries
-- Florentino visible but represented indirectly
+- Florentino consciously visible as a slender, indistinct seated silhouette
 
 ## Figures
 
 - Do not begin with detailed, front-facing portraits.
-- Both Fermina and Florentino must be present in the first frame with comparable subtlety.
-- Fermina should be distinguishable through posture, dress, hands, reading, reflection, or a partial courtyard or path view; she must not read as generic background decoration.
-- Florentino should be distinguishable through silhouette, clothing, hand, book, posture, or occupied negative space; he must not own the entire camera viewpoint.
-- Their visibility may be asymmetric, but their narrative importance should feel balanced.
+- Both Fermina and Florentino must be present in the first frame, but neither should initially read as a character portrait.
+- Fermina should be small and partially screened by doorway shadow, almond leaves, or architectural depth. Her seated posture, folded tunic, separate gardenia blossoms, embroidery, and clean downcast profile distinguish her without turning her into a portrait. Do not include the aunt.
+- Fermina continues embroidering with her gaze lowered; an empty facing chair implies the aunt who has just left without depicting her.
+- Florentino should be consciously visible as a complete or nearly complete seated silhouette at a distance. His bowed head, narrow black-suited posture, book, and perhaps a tiny eyeglass glint may read, but not his facial features or identifying detail.
+- Do not enlarge Florentino into the camera viewpoint or reduce him to a disembodied hand and book.
+- Narrative balance comes from the visual path between the bench and doorway, not equal size or descriptive detail.
 - Human scale and period clothing must remain consistent across concept studies.
 - Reject distorted anatomy, implausible poses, or faces that become the scene's accidental focal point.
 
@@ -213,14 +285,14 @@ Evaluate Three.js only if the blockout proves that one of these is essential:
 
 A shader may have one localized responsibility. The base scene must remain complete without it.
 
-## Required concept assets
+## Approved reference and next deliverables
 
-- Three full-scene concept frames at comparable composition
-- One desktop composition study
-- One mobile crop study for the leading direction
-- Basic foreground/midground/background separation test
-- One representative interactive object study
-- One passage surface and typography study
+- Approved desktop concept: [Study J](../../design/concepts/under-the-almond-trees-study-j-g-sharpness-restored-v8.png)
+- Responsive static composition using Study J as the complete fallback
+- Authored mobile crop retaining the bench-to-doorway relationship
+- Small foreground/midground/background separation proof
+- One representative interactive-object state
+- One passage-surface and typography study using exact supplied text
 
 ## Acceptance criteria for the rough vertical slice
 

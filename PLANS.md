@@ -4,56 +4,30 @@ Last updated: 2026-08-02
 
 ## Milestone
 
-Complete a polished vertical slice of **The Park of Waiting** that establishes the visual and interaction grammar for the project.
+Build a rough but convincing living-painting prototype of **Under the Almond Trees** using the approved [Study O](design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) composition.
 
-## Phase 1 — Direction
+## Approved
 
-- [x] Establish project purpose and private scope
-- [x] Choose the park and house as the first scene
-- [x] Define the documentation and decision structure
-- [x] Reconcile the scene with descriptive passages supplied by the reader
-- [x] Produce three materially different concept frames
-- [ ] Select or combine a visual direction
-- [ ] Lock the initial composition, palette relationships, and type direction
+- [x] Scene title, narrative boundary, and source-derived visual anchors
+- [x] Wide park-to-house composition and painterly treatment
+- [x] Florentino's placement, scale, black suit, book, and glasses
+- [x] Fermina's doorway placement, embroidery, two chairs, gardenias, and restrained facial detail
+- [x] Study O as the visual reference for implementation
 
-## Phase 2 — Rough living painting
+## Next
 
-- [ ] Scaffold the Vite, React, and TypeScript application
-- [ ] Implement a responsive static composition with rough layers
-- [ ] Add restrained pointer and focus parallax
-- [ ] Implement one representative quotation interaction
-- [ ] Test desktop, mobile, keyboard, touch, and reduced motion
-- [ ] Decide whether CSS layers are sufficient or a spatial renderer is justified
+- [ ] Scaffold Vite, React, and TypeScript with exact project scripts
+- [ ] Build a responsive static first frame from Study O
+- [ ] Test desktop and mobile framing before producing final layers
+- [ ] Create a small foreground/midground/background separation proof
+- [ ] Add restrained pointer depth with a stable reduced-motion state
+- [ ] Implement one passage reveal using semantic HTML
+- [ ] Test keyboard, touch, focus return, reduced motion, and the browser console
+- [ ] Decide from the prototype whether CSS layers are sufficient
 
-## Phase 3 — Final asset production
+## Inputs still needed
 
-- [ ] Generate and refine the selected high-resolution artwork
-- [ ] Separate production layers and transparent interactive objects
-- [ ] Create desktop and mobile crops
-- [ ] Optimize runtime formats and loading order
-- [ ] Add atmospheric treatment without obscuring the artwork
+- One exact passage or phrase for the first interaction
+- Later, the remaining passage set and preferred object associations
 
-## Phase 4 — Complete the scene
-
-- [ ] Place five deliberate quotation discoveries
-- [ ] Add the late-afternoon-to-blue-hour lighting progression if it survives testing
-- [ ] Add optional ambient sound if it improves the experience
-- [ ] Add the commonplace drawer for discovered passages
-- [ ] Complete visual, accessibility, and performance QA
-
-## Later
-
-- Build **The Journey** as a nature-led counterpoint
-- Create the book-level navigation after two scenes establish the system
-- Consider a reusable project skill only after the workflow has succeeded twice
-- Create and connect a private GitHub remote after the first coherent commit is ready
-
-## Current unknowns
-
-- Final title for the first scene; `The Park of Waiting` remains a working title
-- Final concept treatment
-- Exact passage set and hotspot assignment
-- Final font families and licenses
-- Final colour values
-- Whether the time-of-day transition should be real-time, user-controlled, or omitted
-- Whether any part of the journey needs Three.js
+Typography, final production layers, optional time progression, sound, and any shader remain later decisions. Three.js is not planned unless the CSS-layer prototype reveals a concrete limitation.

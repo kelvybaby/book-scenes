@@ -4,7 +4,7 @@
 
 Build a private interactive literary commonplace book. The quality bar is a graceful, art-directed experience in which imagery, typography, motion, and interaction express the emotional logic of a book.
 
-The current vertical slice is `The Park of Waiting`. Read `docs/ART_DIRECTION.md` and `docs/scenes/park-of-waiting.md` before changing its visuals or interactions.
+The current vertical slice is `Under the Almond Trees`. Read `docs/ART_DIRECTION.md` and `docs/scenes/under-the-almond-trees.md` before changing its visuals or interactions.
 
 ## Priorities
 
@@ -65,8 +65,11 @@ Before the application is scaffolded, do not invent commands. Update this file w
 ## Documentation discipline
 
 - `README.md` is the human entry point.
+- Do not edit `README.md` without the reader's explicit approval for the proposed change.
 - `AGENTS.md` contains durable repository rules, not a complete design manual.
 - `PLANS.md` describes the current milestone and should remain short.
 - `docs/DECISIONS.md` records decisions and their reasons.
 - Each scene owns a specification under `docs/scenes/`.
+- Put verbatim visual-source excerpts in the relevant scene specification rather than creating another evidence document.
+- Do not create a new planning Markdown file when an existing document already owns the concern.
 - When the same mistake recurs, add the smallest concrete rule that would prevent it.

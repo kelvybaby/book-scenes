@@ -6,11 +6,15 @@ The project should feel like entering the reader's emotional memory of a book ra
 
 The scene exists to give memorable language a physical home. A passage is not pasted over an image; it is discovered through an object whose meaning and behavior belong to the world.
 
-## First world: The Park of Waiting (working title)
+## First world: Under the Almond Trees
 
 The first tableau looks across the Park of the Evangels toward Fermina Daza's house. It is based on the early spatial relationship in the book without attempting an archaeological reconstruction.
 
-The house is an emotionally truthful composite: recognizably one house and simultaneously a vessel for the atmosphere of the unnamed Caribbean city. Florentino is partially visible from the park; Fermina is partially visible within or beside the house. Neither becomes a dominant portrait. The park, façade, courtyard, threshold, vegetation, telegraph wires, and diminishing light hold the charged distance between them.
+The house is an emotionally truthful composite: recognizably one house and simultaneously a vessel for the atmosphere of the unnamed Caribbean city. Florentino is almost lost in the park's foreground shadow; Fermina is small and partially screened at the doorway beneath the almond trees. Neither becomes a portrait. The park, façade, courtyard, threshold, vegetation, telegraph wires, and diminishing light hold the charged distance between them.
+
+## Approved visual reference
+
+[Study O](../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) is the approved composition and rendering reference. Preserve its wide camera, crisp painterly detail, value structure, vegetation, architecture, park-to-street separation, and restrained figure scale. It is a concept master and static fallback source, not yet a final responsive layer set.
 
 ## Three mood words
 
@@ -81,17 +85,17 @@ Paper texture belongs to passage surfaces and selected transitions, not as a fil
 
 ## Composition and camera
 
-- Camera height approximates a seated or slightly lowered observer in the park.
-- The bench and book form the near foreground without turning Florentino into a literal portrait.
-- Fermina remains visibly present at the house with comparable subtlety, scale, and human specificity.
-- Vegetation partially frames the house and creates natural depth masks.
+- The camera observes from elsewhere in the park rather than borrowing Florentino's point of view.
+- Florentino and the bench form a small, consciously visible silhouette in the left or left-middle foreground/midground; no close head, shoulder, or over-the-shoulder framing.
+- Fermina remains slightly more legible at the doorway through posture, clothing, and light. Her small downcast profile should resolve cleanly when inspected without becoming a focal portrait.
+- Almond vegetation frames the park and also grows substantially at the house doorway, creating a sheltered threshold around Fermina.
 - The house façade is readable but not perfectly frontal or symmetrical.
 - One doorway, courtyard opening, or window carries the principal architectural focus.
 - The composition preserves calm negative areas for passage reveals without making them look like marketing copy zones.
 
 ## Light
 
-The initial lighting idea moves from late afternoon toward blue evening. The change should be almost imperceptible: lengthening shadow, warming lamps, cooling distance, gathering insects, and increasing separation between paper ivory and nocturnal surroundings.
+The initial lighting idea moves from bright late afternoon toward blue evening. Tree shade retains warm colour, air, and foliage detail rather than collapsing into near-black. Any change should be almost imperceptible: lengthening shadow, warming lamps, cooling distance, gathering insects, and increasing separation between paper ivory and nocturnal surroundings.
 
 This progression is provisional. A strong static time of day is preferable to a weak or distracting cycle.
 
@@ -139,13 +143,11 @@ Sound is optional and user-initiated. Potential elements include insects, leaves
 
 The project may share interaction ethics, accessibility, and passage behavior across books. It should not force every book into this palette, architecture, or material language. Each book earns its own world metaphor and visual constitution.
 
-## Unresolved through visual testing
+## Remaining design work
 
-- Which of the three concept treatments becomes primary
-- Degree of architectural realism
-- Visibility and specificity of the two young figures
-- Final colour values
-- Final typography
-- Strength of paper and paint texture
-- Static twilight versus a slow time progression
-- Whether the quotation surfaces feel botanical, epistolary, archival, or mixed by object
+- Responsive desktop and mobile framing
+- Passage typography and licensed font selection
+- Passage-surface material for the first hotspot
+- Final production-layer boundaries and parallax strength
+- Static late afternoon versus a slow time progression
+- Whether later quotation surfaces should vary by their host object

@@ -91,3 +91,43 @@ This file records decisions that affect the project beyond one implementation de
 **Decision:** Show both Fermina and Florentino in the initial frame with comparable subtlety and narrative weight. Use partial posture, clothing, hands, objects, reflections, or architectural framing rather than detailed portraits.
 
 **Consequences:** Concept studies must preserve the distance between them while making each figure unmistakably present. `The Park of Waiting` remains a working title because it may overemphasize Florentino's experience.
+
+## 2026-08-02 — Name the first scene Under the Almond Trees
+
+**Status:** Accepted
+
+**Context:** `The Park of Waiting` overemphasized Florentino's vigil, while `The First Meeting` and `Love at First Sight` felt too familiar and too literal for a scene that compresses several early moments.
+
+**Decision:** Use **Under the Almond Trees** as the first scene title.
+
+**Consequences:** Rename the scene specification and future runtime directory. The title can encompass the concealed bench, Fermina at the doorway, falling leaves, shade, and the spatial relationship between house and park.
+
+## 2026-08-02 — Separate character evidence from character visibility
+
+**Status:** Accepted; supersedes the 2026-08-01 visibility decision where they conflict
+
+**Context:** The first concept set treated detailed textual descriptions of Florentino and Fermina as a request to show more of them. The reader intended those details as context for any fragments that survived the composition.
+
+**Decision:** Keep Florentino substantially more concealed than all three first studies: a deeply cropped silhouette, hand, clothing edge, book, or eyeglass glint rather than a readable head or torso. Show Fermina only slightly more clearly, seated alone at the doorway beneath almond trees, in the many-folded tunic and gardenia garland, partially screened by leaves, shadow, and distance. Do not include the aunt.
+
+**Consequences:** Narrative balance must come from composition, light, and the space between the figures—not equal visibility. The next study combines Study A's painterly texture with a refined version of Study C's architecture; Study B's engraved treatment is not the primary direction.
+
+## 2026-08-02 — Use a wider third-person park viewpoint
+
+**Status:** Accepted; supersedes the 2026-08-02 character-visibility decision where they conflict
+
+**Context:** Study D overcorrected Florentino from portrait-sized to nearly absent. Its close book-and-hand foreground still implied his point of view, while its dark tree shade and closed neighborhood repeated too much of Study A.
+
+**Decision:** Observe Florentino from elsewhere in the park. Show his complete or nearly complete seated reading silhouette at a smaller scale, consciously visible but without readable face or costume detail. Open Fermina's house through arches and passageways, redesign the surrounding neighborhood, place substantial almond growth at the doorway, and retain colour and detail in shaded areas.
+
+**Consequences:** Future studies must avoid both over-the-shoulder proximity and disembodied-hand concealment. Study E becomes the leading composition pending reader review.
+
+## 2026-08-02 — Approve Study O for implementation
+
+**Status:** Accepted; supersedes earlier concept-selection and figure-visibility decisions where they conflict
+
+**Context:** Studies E through I established the open neighborhood, crossable street, integrated park bench, interior dry fountain, two-chair embroidery arrangement, glasses, gardenias, and restrained facial detail. Successive full-frame edits softened the crisp rendering that the reader preferred in Studies E, F, and G.
+
+**Decision:** Use `design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png` as the approved visual reference. Study J preserves Study G's full-frame sharpness and composition while retaining only the approved local figure corrections.
+
+**Consequences:** Stop full-scene concept iteration. Use Study J as the static prototype frame and visual authority; test responsive framing, layer separation, one passage interaction, typography, and motion in the browser before producing final high-resolution layers.

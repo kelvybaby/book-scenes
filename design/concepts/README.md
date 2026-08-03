@@ -1,70 +1,30 @@
-# First park concept set
+# Under the Almond Trees concept ledger
 
-Generated 2026-08-02 with the built-in image-generation workflow. These are visual hypotheses, not final runtime assets or historical reconstructions.
+Generated on 2026-08-02 with the built-in image-generation workflow. These files are visual-development evidence, not historical reconstructions or final runtime layers.
 
-All three studies use the same source-derived anchors: concealed bench beneath almond trees, half-ruined house, cloister-like arches and passageway, luminous patio, weeds in flowerpots, dry fountain, dry-season heat, yellow and dead leaves, Florentino in black with verse book and eyeglasses, and Fermina in a blue-striped uniform with one braid.
+## Approved reference
 
-## Study A — Luminous painterly realism
+`under-the-almond-trees-study-o-gridlocked-face-v13.png` is approved for the implementation stage. It preserves the selected regional vegetation and full-frame composition while giving Fermina a clean, correctly aligned downcast profile through a grid-locked local restoration.
 
-File: `park-study-a-painterly-v1.png`
+Do not reroll the full scene. Use Study O as the static frame and visual authority while testing responsive framing, depth layers, typography, and interaction.
 
-What works:
+## Version ledger
 
-- Strong bright-patio-versus-decay contrast
-- Convincing dry heat and material surfaces
-- Immediate readable relationship across the park
+| Study | File | Outcome |
+| --- | --- | --- |
+| A | `park-study-a-painterly-v1.png` | Established luminous painterly texture; figures and staging were too prominent or awkward. |
+| B | `park-study-b-engraving-v1.png` | Rejected as the primary medium; useful evidence for disciplined line and marginalia. |
+| C | `park-study-c-diorama-v1.png` | Established open architectural depth and separable planes. |
+| D | `under-the-almond-trees-study-d-painterly-spatial-v2.png` | Corrected the doorway idea but overconcealed Florentino and darkened the neighborhood. |
+| E | `under-the-almond-trees-study-e-open-neighborhood-v3.png` | Established the approved wide camera, open neighborhood, brighter shade, and figure scale. |
+| F | `under-the-almond-trees-study-f-spatial-corrections-v4.png` | Added embroidery, the empty chair, an integrated bench, a distinct street, and the interior fountain. |
+| G | `under-the-almond-trees-study-g-bench-position-v5.png` | Established the approved bench placement and the preferred crisp rendering. |
+| H | `under-the-almond-trees-study-h-glasses-gardenias-v6.png` | Added glasses and separate gardenia blossoms; retained as local figure evidence. |
+| I | `under-the-almond-trees-study-i-fermina-redesign-v7.png` | Rejected because Fermina became too prominent. |
+| I2 | `under-the-almond-trees-study-i-sharper-fermina-v7.png` | Improved Fermina's face but softened the full frame; retained only as local detail evidence. |
+| J | `under-the-almond-trees-study-j-g-sharpness-restored-v8.png` | **Approved.** G-based scene with accepted local figure corrections. |
+| K | `under-the-almond-trees-study-k-regional-vegetation-v9.png` | Established the selected Caribbean regional flower and vegetation configuration while retaining the almond trees. |
+| N | `under-the-almond-trees-study-n-fermina-head-rebuilt-v12.png` | Rejected: the restored face remained vertically misaligned and competed with the original facial structure. |
+| O | `under-the-almond-trees-study-o-gridlocked-face-v13.png` | **Approved.** K-based scene with Fermina restored on the original crop grid and no free-positioned facial overlay. |
 
-What needs revision:
-
-- Florentino's head is too prominent
-- Fermina appears placed on a window ledge rather than naturally inhabiting a passageway
-- Unrequested foreground luggage distracts from the bench and book
-
-## Study B — Coloured engraving
-
-File: `park-study-b-engraving-v1.png`
-
-What works:
-
-- Best balance between the two figures
-- Linework makes weathering feel observed rather than cosmetically distressed
-- Dry fountain, almond shade, and open central distance form a readable interaction map
-- The medium could accept marginalia and passage labels gracefully
-
-What needs revision:
-
-- The house reads larger and more formally composed than “half in ruins” may imply
-- Fermina's blue stripes and braid need clearer local study
-- The broad façade risks feeling like a generalized colonial monument
-
-## Study C — Layered memory diorama
-
-File: `park-study-c-diorama-v1.png`
-
-What works:
-
-- Strongest separable depth planes for 2.5D interaction
-- Luminous patio feels like a world nested inside a deteriorating house
-- Both figures remain incomplete but legible
-- Architecture feels remembered and composite without becoming fantasy
-
-What needs revision:
-
-- The rendering does not yet visibly distinguish itself from painterly realism
-- Fermina is slightly isolated from the luminous patio focal area
-- Fountain and foreground plane need a clearer interactive hierarchy
-
-## Provisional reading
-
-Study B currently has the strongest graphic identity and character balance. Study C has the strongest spatial foundation for interaction. A productive next iteration may combine B's engraved surface language with C's depth organization rather than selecting either unchanged.
-
-## Working-title candidates
-
-- **Across the Park** — spatial, balanced, and not overly interpretive
-- **The First Distance** — lyrical and attentive to separation
-- **A Casual Glance** — rooted in the initiating moment without using “love at first sight”
-- **The Brightness in the Patio** — centers the house, Fermina, and the contrast with decay
-- **Under the Almond Trees** — atmospheric but weighted toward Florentino's vigil
-- **Before the Letters** — chronologically useful but less visually specific
-
-`The First Meeting` and `Love at First Sight` remain weaker candidates: both are familiar phrases, and the scene intentionally compresses several early moments rather than illustrating one literal meeting.
+The stable prompt and first-medium comparison remain in `design/prompts/park-concept-studies.md`. Durable rationale belongs in `docs/DECISIONS.md`; implementation requirements belong in the scene specification.

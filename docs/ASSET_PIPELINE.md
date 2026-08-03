@@ -36,24 +36,26 @@ Do not commit to this exact count if a simpler separation produces the same resu
 
 ## Production workflow
 
-### 1. Concept studies
+The concept phase is complete. [Study O](../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) is the approved visual reference.
 
-- Generate three materially different treatments using `design/prompts/park-concept-studies.md`.
-- Hold the composition and narrative constant enough to compare them.
-- Change medium, texture, light, and depth treatment—not merely colour.
-- Inspect architecture, vegetation, hands, faces, perspective, object scale, and repeated AI artifacts.
+### 1. Browser blockout
 
-### 2. Motion blockout
+- Use Study O intact as the complete static first frame.
+- Establish desktop and mobile framing before producing final cutouts.
+- Typeset one real passage in semantic HTML and test its relationship to a host object.
+- Confirm the scene remains coherent with motion disabled.
 
-- Use rough crops or temporary painted shapes to establish depth.
-- Test desktop and mobile framing before final asset production.
-- Test one quotation interaction and reduced-motion state.
-- Decide whether CSS layers are sufficient.
+### 2. Layer proof
+
+- Test a small foreground, midground, and background separation using rough crops or temporary masks.
+- Keep parallax offsets small and verify that no gaps or seams appear.
+- Test pointer, keyboard, touch, and reduced-motion behavior.
+- Decide whether CSS layers are sufficient before considering a spatial renderer.
 
 ### 3. Production art
 
 - Create a high-resolution master composition.
-- Regenerate or repair small regions rather than rerolling the whole scene after composition approval.
+- Preserve Study O's approved scene; regenerate or repair only bounded regions.
 - Separate layers with clean overlap beyond their visible edges so parallax does not expose gaps.
 - Create distinct closed, hinted, active, and opened states for interactive objects when needed.
 - Avoid embedding quotation text in generated images.
@@ -103,6 +105,18 @@ Store important generation prompts under `design/prompts/`. For each retained re
 
 Never overwrite a selected source image during experimentation. Use descriptive versioned names.
 
+## Grid-locked fine-detail repair
+
+When ordinary generation cannot resolve a small distant detail without moving or deforming it:
+
+1. Extract a square crop from the approved master and record its exact origin and dimensions.
+2. Enlarge that crop on a fixed pixel grid and restore the detail in enough surrounding context to preserve anatomy, lighting, and edges.
+3. Reduce the result by the exact inverse scale and return it to the recorded origin with no manual translation, rotation, or reframing.
+4. Composite through a feathered mask that covers the complete defective structure, so no residual duplicate remains.
+5. Verify the changed-pixel bounds, inspect both real display size and a magnified crop, and reject any doubled, floating, stretched, or misplaced feature.
+
+Prefer this method to pasting isolated eyes, noses, mouths, hands, flowers, or other fine features onto a distant figure. Study O's Fermina repair is the reference example.
+
 ## Reference handling
 
 - Store external links and extracted principles in `design/references/README.md`.
@@ -118,7 +132,7 @@ The exact structure should be created with the application, but use this directi
 src/
   assets/
     scenes/
-      park-of-waiting/
+      under-the-almond-trees/
         background/
         layers/
         interactives/
@@ -126,7 +140,7 @@ src/
   content/
     passages.ts
   scenes/
-    park-of-waiting/
+    under-the-almond-trees/
 ```
 
 ## Fallbacks

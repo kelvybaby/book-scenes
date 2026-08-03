@@ -4,7 +4,7 @@
 
 Generate three materially different visual treatments for the same narrative scene. These are composition and art-direction studies, not final runtime assets.
 
-The studies should remain comparable: view from the park toward Fermina's house, low or seated observer height, Florentino partially visible near the bench/book in the foreground, Fermina partially visible at the house or along its edge, vegetation establishing depth, house and courtyard across the square, and late-afternoon light.
+The studies should remain comparable: a wide third-person view from within the park toward Fermina's house, Florentino consciously visible as a small unreadable silhouette on a bench, Fermina small and partially screened while seated at the doorway beneath substantial almond growth, vegetation establishing depth, an open house and courtyard across the square, and bright late-afternoon light.
 
 Do not render quotation text, titles, logos, interface panels, or watermarks into the artwork.
 
@@ -13,13 +13,13 @@ Do not render quotation text, titles, logos, interface panels, or watermarks int
 ```text
 Asset type: widescreen concept frame for an interactive literary scene.
 
-Scene: a compressed memory tableau in an unnamed late-nineteenth- or early-twentieth-century Caribbean city, viewed from the most concealed bench in a small park shaded by almond trees toward one of its oldest houses. The house is half-ruined rather than picturesque: weathered plaster, abbey-cloister arches, a passageway, a bright interior patio, neglected flowerpots with weeds, and a dry stone fountain. A very thin young man is partially visible near the bench, pretending to read verse: flattened dark hair, myopic eyeglasses, an oppressive inherited black suit, and a timid sentinel-like posture rather than a portrait. Across a breathable middle distance, a young woman is partially but unmistakably visible near the window, passageway, or patio: blue-striped school uniform, one thick braid ending in a bow, and a light, self-possessed gait. Give both figures comparable subtlety and narrative weight; neither is a detailed face or generic decoration. Add telegraph wires and fragments of neighboring roofs and balconies. The architecture is an original composite, not a reconstruction of a real building.
+Scene: a compressed memory tableau in an unnamed late-nineteenth- or early-twentieth-century Caribbean city, observed from elsewhere in a small park toward one of its oldest houses. Use a wide third-person composition, never an over-the-shoulder view. The house is half-ruined rather than picturesque: a low, irregular, human-scaled residence with weathered plaster, two or three intimate abbey-cloister arches, open layered passageways, and a clearly visible bright interior patio. The patio contains neglected flowerpots with weeds and a modest dry stone fountain; the fountain must be visibly inside the house, beyond an arch or passage, never in the park or street. Avoid a monumental civic arcade, palace façade, or monolithic block. Substantial almond trunks and branches grow beside and shade the doorway. Florentino is consciously visible at a comfortable distance on a park bench as a small, slender black-suited silhouette pretending to read verse. His complete seated gesture may read, but not his face, profile, or internal costume detail; he must not dominate the camera and must not disappear into only a hand and book. Integrate his bench into park paths, planting, roots, and dappled ground cover. Across a distinct, visibly crossable street, Fermina sits at the doorway beneath almond branches and a shower of yellow leaves. She occupies one of two facing or gently angled chairs; the second chair is empty and implies her aunt's recent departure without depicting her. Fermina keeps her gaze lowered and continues embroidering. She is small and partially screened by architecture and foliage; only enough of her narrow many-folded Greek-style tunic, fresh-gardenia garland, posture, hands, or textile is visible to register a human presence. Do not show a readable face and do not include the aunt. Narrative balance comes from the light and visual path between bench and doorway, not equal figure visibility. Make the park spatially distinct from the street through paths, planting beds, and a low curb or change of ground material. Surround the house with an irregular neighborhood of narrow residences, varied low tiled rooflines, small balconies, side lanes, garden walls, telegraph wires, and muted mineral colours. The architecture is an original composite, not a reconstruction of a real building.
 
 Emotional qualities: lush, suspended, watchful. The atmosphere holds waiting, secrecy, correspondence, heat, and approaching evening without becoming sentimental.
 
-Composition: seated camera height, slightly oblique house view, strong foreground/midground/background separation, natural vegetation framing, one principal doorway/window focal point, calm negative areas suitable for later browser typesetting, no centered poster symmetry.
+Composition: wide third-person park view, slightly oblique open-house view, strong foreground/midground/background separation, almond vegetation both in the park and at the doorway, one principal threshold/patio focal path, calm negative areas suitable for later browser typesetting, no centered poster symmetry.
 
-Lighting: dry-season late afternoon moving toward blue evening, oppressive heat in nearly deserted streets, luminous patio against cooling shade, physically plausible shadows, restrained glow. Yellow and dead almond leaves fall or move in a small wind-driven swirl. Beauty persists inside material neglect; avoid romantic ruin-porn or a generalized gothic filter.
+Lighting: bright dry-season late afternoon moving toward blue evening, heat in nearly deserted streets, luminous patio and lifted green-gold tree shade, physically plausible shadows with visible colour and foliage detail. Never crush the canopy or foreground into near-black. Yellow and dead almond leaves fall or move in a small wind-driven swirl. Beauty persists inside material neglect; avoid romantic ruin-porn or a generalized gothic filter.
 
 Constraints: no embedded text, no watermark, no modern objects, no glossy HDR, no plastic surfaces, no fantasy architecture, no detailed front-facing faces, no voyeuristic framing, no malformed hands, no excessive butterflies, no generic magical sparkles, no sepia wash over the whole image, no film-poster typography, no copied recognizable composition.
 ```
@@ -35,7 +35,7 @@ Change these variables from the stable brief:
 - Figures: indirect and restrained
 
 ```text
-Create Study A using the stable scene brief. Render it as luminous painterly realism: an authored environmental painting with tactile plaster, dark wood, dense leaves, woven fabric, warm paper, and humid atmospheric depth. Preserve believable perspective and scale. Use visible but refined brush texture, controlled edges, and selective detail rather than uniform hyper-detail. The image should feel expensive, literary, and observed, not like concept-art spectacle or AI fantasy. Keep both young figures partial yet unmistakably present, with comparable subtlety and narrative weight across the park-to-house distance.
+Create Study A using the stable scene brief. Render it as luminous painterly realism: an authored environmental painting with tactile plaster, dark wood, almond leaves, woven fabric, warm paper, and dry-season atmospheric depth. Preserve believable perspective and scale. Use visible but refined brush texture, controlled edges, and selective detail rather than uniform hyper-detail. The image should feel expensive, literary, and observed, not like concept-art spectacle or AI fantasy. Architecture and atmosphere must dominate; keep Florentino almost anonymous in foreground shadow and Fermina small and partially screened at the doorway.
 ```
 
 ## Study B — Coloured engraving and printed atmosphere
@@ -85,38 +85,8 @@ Evaluate each study on:
 
 After selecting a leading study, change only one or two variables per iteration. Prefer targeted repair or regional regeneration over replacing the approved composition.
 
-## Iteration record
+## Archive status
 
-### First concept set
+The comparison phase is complete. Study J is the approved visual reference; see `design/concepts/README.md` for the compact version ledger and `docs/DECISIONS.md` for the decision rationale.
 
-**Date:** 2026-08-02  
-**Parent:** Stable scene brief plus reader-supplied descriptive anchors  
-**Purpose:** Compare three visual media before committing to a runtime representation  
-**Variables changed:** Medium, edge treatment, depth construction, and colour application  
-**Outputs:**
-
-- `design/concepts/park-study-a-painterly-v1.png`
-- `design/concepts/park-study-b-engraving-v1.png`
-- `design/concepts/park-study-c-diorama-v1.png`
-
-**Decision:** Compare before revising. Do not select solely from first-impression beauty.
-
-### Reusable record template
-
-```md
-### Version
-
-**Date:**
-**Parent:**
-**Purpose:**
-**Variables changed:**
-**Prompt additions:**
-**Output filename:**
-**What succeeded:**
-**What failed:**
-**Decision:** Keep / revise / reject
-```
-
-## Selected direction
-
-TBD after visual comparison.
+Future prompts should target bounded production needs—layer extensions, transparent interactive objects, mobile crops, or local repairs—not regenerate the approved full scene.
