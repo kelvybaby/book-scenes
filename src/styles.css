@@ -1,0 +1,135 @@
+:root {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: #f3ecd7;
+  background: #17180f;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+html {
+  background: #17180f;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #17180f;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+.scene {
+  --canopy-x: 0px;
+  --canopy-y: 0px;
+  --foreground-x: 0px;
+  --foreground-y: 0px;
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #17180f;
+}
+
+.scene__art,
+.scene__underpaint,
+.scene__foreground-underpaint,
+.scene__canopy,
+.scene__foreground {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% 50%;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.scene__layers {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scene__layers--ready {
+  opacity: 1;
+}
+
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .scene__canopy {
+    transform: translate3d(var(--canopy-x), var(--canopy-y), 0);
+    will-change: transform;
+  }
+
+  .scene__foreground {
+    transform: translate3d(var(--foreground-x), var(--foreground-y), 0);
+    will-change: transform;
+  }
+}
+
+@media (min-aspect-ratio: 2 / 1) {
+  .scene__art,
+  .scene__underpaint,
+  .scene__foreground-underpaint,
+  .scene__canopy,
+  .scene__foreground {
+    object-position: 50% 47%;
+  }
+}
+
+@media (orientation: portrait) {
+  .scene {
+    display: grid;
+    place-items: center;
+    background:
+      linear-gradient(180deg, rgba(8, 12, 7, 0.36), transparent 34%),
+      linear-gradient(180deg, #10140c 0%, #292718 48%, #12140d 100%);
+  }
+
+  .scene__art,
+  .scene__underpaint,
+  .scene__foreground-underpaint,
+  .scene__canopy,
+  .scene__foreground {
+    position: absolute;
+    inset: auto;
+    top: 50%;
+    left: 50%;
+    width: 136vw;
+    height: auto;
+    object-fit: contain;
+    object-position: center;
+    transform: translate(-50%, -50%);
+  }
+}
+
+@media (orientation: portrait) and (min-width: 700px) {
+  .scene__art,
+  .scene__underpaint,
+  .scene__foreground-underpaint,
+  .scene__canopy,
+  .scene__foreground {
+    width: 118vw;
+  }
+}

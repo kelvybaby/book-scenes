@@ -2,7 +2,7 @@
 
 ## Status
 
-Visual direction approved. [Study O](../../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) is the implementation reference; responsive framing, layer separation, typography, and interaction remain to be proven in the browser.
+Visual direction approved. [Study O](../../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) is the upstream visual master, and [Study Q](../../design/concepts/under-the-almond-trees-study-q-ground-fermina-v14.png) is the approved final blockout for the passage-interaction stage. The browser blockout has a responsive static frame and a small registered 2.5D layer proof; final responsive framing, passage interaction, typography, and full browser QA remain.
 
 ## Spoiler boundary
 
@@ -285,12 +285,12 @@ Evaluate Three.js only if the blockout proves that one of these is essential:
 
 A shader may have one localized responsibility. The base scene must remain complete without it.
 
-## Approved reference and next deliverables
+## Approved reference and remaining deliverables
 
-- Approved desktop concept: [Study J](../../design/concepts/under-the-almond-trees-study-j-g-sharpness-restored-v8.png)
-- Responsive static composition using Study J as the complete fallback
+- Upstream desktop visual master: [Study O](../../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png)
+- Static browser composition using the approved Study Q blockout, with Study O retained as the upstream source master
+- Registered foreground/midground/background separation proof with restrained pointer depth and reduced-motion settling
 - Authored mobile crop retaining the bench-to-doorway relationship
-- Small foreground/midground/background separation proof
 - One representative interactive-object state
 - One passage-surface and typography study using exact supplied text
 

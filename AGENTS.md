@@ -60,7 +60,13 @@ Before calling a visual change complete:
 - Compare against the active scene's acceptance criteria.
 - Review for generated-image artifacts, generic template patterns, illegible text, and unjustified motion.
 
-Before the application is scaffolded, do not invent commands. Update this file with exact commands after `package.json` exists.
+The application scripts are:
+
+- `npm run dev` — local development server
+- `npm run build` — TypeScript project build followed by the production bundle
+- `npm run typecheck` — TypeScript validation without bundling
+- `npm run lint` — Oxlint validation
+- `npm run preview` — local preview of the production bundle
 
 ## Documentation discipline
 

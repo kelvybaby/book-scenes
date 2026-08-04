@@ -87,6 +87,20 @@ After selecting a leading study, change only one or two variables per iteration.
 
 ## Archive status
 
-The comparison phase is complete. Study J is the approved visual reference; see `design/concepts/README.md` for the compact version ledger and `docs/DECISIONS.md` for the decision rationale.
+The comparison phase is complete. Study O remains the upstream visual master, while Study Q below is the approved final blockout for the passage-interaction stage. See `design/concepts/README.md` for the compact version ledger and `docs/DECISIONS.md` for the decision rationale.
 
 Future prompts should target bounded production needs—layer extensions, transparent interactive objects, mobile crops, or local repairs—not regenerate the approved full scene.
+
+## Study Q — bounded park-ground redesign
+
+Variables changed from Study O: the park floor below the street and the distribution of fallen leaves. The street, street curb, figures, house, canopy, and camera remain invariant. Output: `under-the-almond-trees-study-q-ground-fermina-v14.png`.
+
+```text
+Redesign only the park ground below the street. Replace the raised internal stone borders and narrow channel with one worn, crossable dry-earth path leading from the lower centre toward the street and doorway. Use organic margins, compacted shaded soil, fine gravel, subtle foot wear, shallow scuffs, occasional exposed roots, and low planting that encroaches naturally. Preserve the distinct crossable street and its curb.
+
+Concentrate dry almond litter in irregular drifts at plant bases, roots, curb pockets, and sheltered edges. Keep the open walking surface sparse, with at most one loose wind-trace. Vary leaf spacing, direction, size, overlap, and colour among dusty tan, dry brown, muted ochre, and occasional yellow. Avoid evenly spaced dots, repeated stamps, uniform yellow confetti, carpet-like coverage, grids, and polka-dot patterns.
+
+Preserve Study O's exact framing, painterly realism, light, figures, architecture, street, canopy, and vegetation outside the immediate ground margins. Do not repaint Fermina or Florentino.
+```
+
+The generated frame was retained only as a regional source. The final Study Q transplants the park-floor region into Study O and restores all protected areas from the approved master. Fermina receives only a restrained grid-locked sharpening pass; no generated facial pixels or free-positioned overlay are used.

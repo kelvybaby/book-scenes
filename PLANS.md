@@ -1,10 +1,10 @@
 # Current plan
 
-Last updated: 2026-08-02
+Last updated: 2026-08-03
 
 ## Milestone
 
-Build a rough but convincing living-painting prototype of **Under the Almond Trees** using the approved [Study O](design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) composition.
+Build a rough but convincing living-painting prototype of **Under the Almond Trees** using the approved [Study Q](design/concepts/under-the-almond-trees-study-q-ground-fermina-v14.png) blockout derived from the [Study O](design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) master.
 
 ## Approved
 
@@ -12,18 +12,25 @@ Build a rough but convincing living-painting prototype of **Under the Almond Tre
 - [x] Wide park-to-house composition and painterly treatment
 - [x] Florentino's placement, scale, black suit, book, and glasses
 - [x] Fermina's doorway placement, embroidery, two chairs, gardenias, and restrained facial detail
-- [x] Study O as the visual reference for implementation
+- [x] Study O as the upstream visual master
+- [x] Study Q as the final blockout reference for the passage-interaction stage
+
+## Progress
+
+- [x] Scaffold Vite, React, and TypeScript with the project scripts recorded in `AGENTS.md`
+- [x] Build a responsive static first frame from the approved Study Q blockout
+- [x] Create a small foreground/midground/background separation proof
+- [x] Add restrained pointer depth with a stable reduced-motion state
+- [x] Confirm that selective CSS layers are sufficient for the current depth prototype
+
+The current browser blockout uses `public/assets/scenes/under-the-almond-trees/under-the-almond-trees-study-q.png` as the approved final frame for the passage-interaction stage. Study O remains the upstream source master for protected scene regions and future bounded repairs.
 
 ## Next
 
-- [ ] Scaffold Vite, React, and TypeScript with exact project scripts
-- [ ] Build a responsive static first frame from Study O
-- [ ] Test desktop and mobile framing before producing final layers
-- [ ] Create a small foreground/midground/background separation proof
-- [ ] Add restrained pointer depth with a stable reduced-motion state
+- [ ] Complete laptop framing QA for the passage interaction
 - [ ] Implement one passage reveal using semantic HTML
 - [ ] Test keyboard, touch, focus return, reduced motion, and the browser console
-- [ ] Decide from the prototype whether CSS layers are sufficient
+- [ ] Revisit mobile-specific composition after the full scene interaction is established
 
 ## Inputs still needed
 

@@ -18,7 +18,7 @@ This file records decisions that affect the project beyond one implementation de
 
 **Context:** The early journey offers landscape and motion, while the park and Fermina's house offer a stronger emotional and spatial center for the first scene.
 
-**Decision:** Build **The Park of Waiting** first. Build **The Journey** second as a nature-led contrast.
+**Decision:** Build the park-and-house scene first, then titled **The Park of Waiting**. Build **The Journey** second as a nature-led contrast.
 
 **Consequences:** The first scene can also serve as a provisional book landing page. The road leaving the square may later connect the two scenes.
 
@@ -90,7 +90,7 @@ This file records decisions that affect the project beyond one implementation de
 
 **Decision:** Show both Fermina and Florentino in the initial frame with comparable subtlety and narrative weight. Use partial posture, clothing, hands, objects, reflections, or architectural framing rather than detailed portraits.
 
-**Consequences:** Concept studies must preserve the distance between them while making each figure unmistakably present. `The Park of Waiting` remains a working title because it may overemphasize Florentino's experience.
+**Consequences:** Concept studies must preserve the distance between them while making each figure unmistakably present. The working title was later superseded by **Under the Almond Trees** because it better holds the park, house, threshold, and distance together.
 
 ## 2026-08-02 — Name the first scene Under the Almond Trees
 
@@ -100,7 +100,7 @@ This file records decisions that affect the project beyond one implementation de
 
 **Decision:** Use **Under the Almond Trees** as the first scene title.
 
-**Consequences:** Rename the scene specification and future runtime directory. The title can encompass the concealed bench, Fermina at the doorway, falling leaves, shade, and the spatial relationship between house and park.
+**Consequences:** Use the title for the scene specification, runtime asset directory, and future scene-specific code. It encompasses the concealed bench, Fermina at the doorway, falling leaves, shade, and the spatial relationship between house and park.
 
 ## 2026-08-02 — Separate character evidence from character visibility
 
@@ -124,10 +124,30 @@ This file records decisions that affect the project beyond one implementation de
 
 ## 2026-08-02 — Approve Study O for implementation
 
-**Status:** Accepted; supersedes earlier concept-selection and figure-visibility decisions where they conflict
+**Status:** Accepted as the upstream visual master; superseded as the current blockout reference by Study Q for the passage-interaction stage
 
-**Context:** Studies E through I established the open neighborhood, crossable street, integrated park bench, interior dry fountain, two-chair embroidery arrangement, glasses, gardenias, and restrained facial detail. Successive full-frame edits softened the crisp rendering that the reader preferred in Studies E, F, and G.
+**Context:** Studies E through I established the open neighborhood, crossable street, integrated park bench, interior dry fountain, two-chair embroidery arrangement, glasses, gardenias, and restrained facial detail. Successive full-frame edits softened the crisp rendering that the reader preferred in Studies E, F, and G. The reader confirmed Study O as satisfactory for the first scene.
 
-**Decision:** Use `design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png` as the approved visual reference. Study J preserves Study G's full-frame sharpness and composition while retaining only the approved local figure corrections.
+**Decision:** Use `design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png` as the approved visual reference and implementation authority. Study O preserves the selected full-frame composition, regional vegetation, and grid-locked facial correction without a free-positioned facial overlay.
 
-**Consequences:** Stop full-scene concept iteration. Use Study J as the static prototype frame and visual authority; test responsive framing, layer separation, one passage interaction, typography, and motion in the browser before producing final high-resolution layers.
+**Consequences:** Stop full-scene concept iteration. Retain Study O as the source master for protected regions and future bounded repairs; use Study Q as the current static prototype frame for the passage-interaction stage.
+
+## 2026-08-03 — Approve Study Q for passage interaction
+
+**Status:** Accepted for the current implementation stage; supersedes Study O as the current blockout reference
+
+**Context:** Study Q applies the accepted bounded park-ground treatment to the Study O composition and preserves the approved camera, house, figures, vegetation, and protected scene regions. The current browser blockout uses the resulting runtime asset and registered foreground layer assets for the first depth proof.
+
+**Decision:** Treat Study Q as the final approved blockout for the next passage-interaction stage. Use it as the complete static frame and runtime base while retaining Study O as the upstream source master.
+
+**Consequences:** Visual iteration for the current blockout is complete. Proceed to passage interaction, using Study Q as the scene surface and Study O only for provenance, protected pixels, and future bounded repairs.
+
+## 2026-08-03 — Keep pointer parallax selective
+
+**Status:** Accepted for the current prototype
+
+**Context:** Moving broad vegetation-and-ground regions exposed visible cut boundaries and made the park surface behave like a sliding card. Registered tests showed that only genuine occluding silhouettes could move without weakening the scene.
+
+**Decision:** Limit pointer-driven translation to the registered upper foreground canopy and the isolated upper silhouette of the lower-right plant cluster. Keep the road, path, soil, architecture, figures, vegetation rooted around Fermina's house, and shrubs behind Florentino static. Treat wind and changing light as separate, localized systems rather than additional translating depth planes.
+
+**Consequences:** The current CSS depth stack is sufficient for the prototype. Do not add another sliding plane unless a bounded browser proof demonstrates a clean silhouette, concealed underpainting, exact resting composite, and a visible improvement when combined with passage, wind, and lighting behavior.

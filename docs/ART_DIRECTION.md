@@ -14,7 +14,7 @@ The house is an emotionally truthful composite: recognizably one house and simul
 
 ## Approved visual reference
 
-[Study O](../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) is the approved composition and rendering reference. Preserve its wide camera, crisp painterly detail, value structure, vegetation, architecture, park-to-street separation, and restrained figure scale. It is a concept master and static fallback source, not yet a final responsive layer set.
+[Study O](../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) is the upstream composition and rendering master. [Study Q](../design/concepts/under-the-almond-trees-study-q-ground-fermina-v14.png) is the approved final blockout for the passage-interaction stage: it preserves Study O's camera, architecture, figures, vegetation, and value structure while incorporating the accepted bounded park-ground treatment. Study Q is the current static fallback; Study O remains the source for protected regions and future bounded repairs.
 
 ## Three mood words
 

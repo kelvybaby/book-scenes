@@ -36,11 +36,12 @@ Do not commit to this exact count if a simpler separation produces the same resu
 
 ## Production workflow
 
-The concept phase is complete. [Study O](../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) is the approved visual reference.
+The concept phase is complete. [Study O](../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) remains the upstream visual master, and [Study Q](../design/concepts/under-the-almond-trees-study-q-ground-fermina-v14.png) is the approved final blockout for the passage-interaction stage.
 
 ### 1. Browser blockout
 
-- Use Study O intact as the complete static first frame.
+- Use Study Q as the complete static first frame for the passage-interaction stage.
+- Retain Study O as the upstream source master for protected regions and future bounded repairs.
 - Establish desktop and mobile framing before producing final cutouts.
 - Typeset one real passage in semantic HTML and test its relationship to a host object.
 - Confirm the scene remains coherent with motion disabled.
@@ -49,13 +50,14 @@ The concept phase is complete. [Study O](../design/concepts/under-the-almond-tre
 
 - Test a small foreground, midground, and background separation using rough crops or temporary masks.
 - Keep parallax offsets small and verify that no gaps or seams appear.
+- For detailed silhouettes, use a pixel-registered matte derived from the approved source; a regenerated cutout may guide but must not become the final alpha. Extend the stationary underpainting beyond the full movement range, use neighboring source pixels along any exposed boundary, and confirm both an exact resting composite and clean magnified edges at every pointer extreme.
 - Test pointer, keyboard, touch, and reduced-motion behavior.
 - Decide whether CSS layers are sufficient before considering a spatial renderer.
 
 ### 3. Production art
 
 - Create a high-resolution master composition.
-- Preserve Study O's approved scene; regenerate or repair only bounded regions.
+- Preserve Study Q's approved blockout for the current stage; use Study O as the source master for any future bounded regeneration or repair.
 - Separate layers with clean overlap beyond their visible edges so parallax does not expose gaps.
 - Create distinct closed, hinted, active, and opened states for interactive objects when needed.
 - Avoid embedding quotation text in generated images.
@@ -124,12 +126,12 @@ Prefer this method to pasting isolated eyes, noses, mouths, hands, flowers, or o
 - References define visual grammar, not assets to trace or reproduce.
 - Generated runtime assets should be original to this project.
 
-## Expected future runtime structure
+## Current and intended runtime structure
 
-The exact structure should be created with the application, but use this direction:
+Runtime assets are currently served from `public/assets` because the blockout references them through root-relative URLs. Scene-specific code and passage data can move into dedicated directories as the application grows:
 
 ```text
-src/
+public/
   assets/
     scenes/
       under-the-almond-trees/
@@ -137,6 +139,8 @@ src/
         layers/
         interactives/
         fallbacks/
+
+src/
   content/
     passages.ts
   scenes/
