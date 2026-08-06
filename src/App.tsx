@@ -1,4 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { WindPage } from './components/WindPage'
+import { underTheAlmondTreesPassages } from './content/passages'
 
 const sceneImage =
   '/assets/scenes/under-the-almond-trees/under-the-almond-trees-study-q.png'
@@ -10,13 +12,41 @@ const rightForegroundUnderpaint =
   '/assets/scenes/under-the-almond-trees/under-the-almond-trees-right-foreground-underpaint-v1.png'
 const rightForegroundImage =
   '/assets/scenes/under-the-almond-trees/under-the-almond-trees-right-foreground-v1.png'
+const readingStateOpen = true
+type PageState = 'open' | 'closing' | 'closed'
 
 function App() {
   const sceneRef = useRef<HTMLElement>(null)
+  const readingLeavesRef = useRef<HTMLDivElement>(null)
   const currentOffset = useRef({ x: 0, y: 0 })
   const targetOffset = useRef({ x: 0, y: 0 })
   const animationFrame = useRef<number | null>(null)
   const [loadedLayerCount, setLoadedLayerCount] = useState(0)
+  const [activePassageIndex, setActivePassageIndex] = useState(0)
+  const [pageState, setPageState] = useState<PageState>('open')
+  const [windPageReady, setWindPageReady] = useState(false)
+  const activePassage = underTheAlmondTreesPassages[activePassageIndex]
+
+  const handleWindPageReady = useCallback((ready: boolean) => {
+    setWindPageReady(ready)
+  }, [])
+
+  const handlePageGone = useCallback(() => {
+    setPageState('closed')
+  }, [])
+
+  const handleRelease = useCallback(() => {
+    setPageState('closing')
+  }, [])
+
+  useEffect(() => {
+    if (pageState !== 'closing') return
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+    if (windPageReady && !reducedMotion.matches) return
+
+    const closingTimer = window.setTimeout(() => setPageState('closed'), 720)
+    return () => window.clearTimeout(closingTimer)
+  }, [pageState, windPageReady])
 
   useEffect(() => {
     const scene = sceneRef.current
@@ -56,7 +86,7 @@ function App() {
     }
 
     const handlePointerMove = (event: PointerEvent) => {
-      if (reducedMotion.matches || !finePointer.matches) return
+      if (readingStateOpen || reducedMotion.matches || !finePointer.matches) return
 
       const bounds = scene.getBoundingClientRect()
       const horizontal = (event.clientX - bounds.left) / bounds.width - 0.5
@@ -83,6 +113,7 @@ function App() {
     reducedMotion.addEventListener('change', settle)
     finePointer.addEventListener('change', settle)
     document.addEventListener('visibilitychange', handleVisibilityChange)
+    settle()
 
     return () => {
       scene.removeEventListener('pointermove', handlePointerMove)
@@ -95,7 +126,7 @@ function App() {
   }, [])
 
   return (
-    <main className="scene" ref={sceneRef}>
+    <main className="scene scene--reading-open" ref={sceneRef}>
       <img
         className="scene__art"
         src={sceneImage}
@@ -151,6 +182,124 @@ function App() {
           onLoad={() => setLoadedLayerCount((count) => count + 1)}
         />
       </div>
+      <div className="scene__reading-veil" aria-hidden="true" />
+      <section className="reading-preview" aria-labelledby="reading-preview-title">
+        <h1 className="visually-hidden" id="reading-preview-title">
+          Passage from Florentino&apos;s book of verse
+        </h1>
+        {pageState !== 'closed' ? (
+          <>
+            <WindPage
+              anchorRef={readingLeavesRef}
+              passage={activePassage}
+              state={pageState}
+              onReady={handleWindPageReady}
+              onGone={handlePageGone}
+            />
+            <div
+              className={`reading-leaves reading-leaves--${activePassage.treatment} reading-leaves--${pageState}${windPageReady ? ' reading-leaves--mesh-ready' : ''}`}
+              ref={readingLeavesRef}
+            >
+          <article
+            className={`reading-sheet reading-sheet--${activePassage.treatment}`}
+            aria-live="polite"
+          >
+            <svg
+              className="reading-sheet__fibers"
+              viewBox="0 0 560 410"
+              preserveAspectRatio="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <defs>
+                <filter id="paper-fibers" x="0" y="0" width="100%" height="100%">
+                  <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.28 0.52"
+                    numOctaves="3"
+                    seed="17"
+                  />
+                  <feColorMatrix type="saturate" values="0" />
+                </filter>
+                <filter id="page-warp" x="-12%" y="-12%" width="124%" height="124%">
+                  <feTurbulence
+                    type="fractalNoise"
+                    baseFrequency="0.007 0.018"
+                    numOctaves="2"
+                    seed="29"
+                    result="page-warp-noise"
+                  />
+                  <feDisplacementMap
+                    data-page-displacement="true"
+                    in="SourceGraphic"
+                    in2="page-warp-noise"
+                    scale="0"
+                    xChannelSelector="R"
+                    yChannelSelector="B"
+                  />
+                </filter>
+                <linearGradient id="ghost-page-wash" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stopColor="#fff9e8" stopOpacity="0.24" />
+                  <stop offset="0.46" stopColor="#f7e8c8" stopOpacity="0.16" />
+                  <stop offset="1" stopColor="#f3e3c1" stopOpacity="0.18" />
+                </linearGradient>
+                <clipPath id="ghost-page-clip">
+                  <path d="M42 29C123 10 308 33 493 14Q538 14 546 47C557 115 529 213 549 361Q554 394 521 397C403 386 269 406 50 394Q20 396 28 361C8 287 48 197 25 103Q18 49 42 29Z" />
+                </clipPath>
+              </defs>
+              <path
+                className="reading-sheet__ghost-page"
+                d="M42 29C123 10 308 33 493 14Q538 14 546 47C557 115 529 213 549 361Q554 394 521 397C403 386 269 406 50 394Q20 396 28 361C8 287 48 197 25 103Q18 49 42 29Z"
+              />
+              <rect
+                className="reading-sheet__ghost-fibers"
+                width="560"
+                height="410"
+                clipPath="url(#ghost-page-clip)"
+                filter="url(#paper-fibers)"
+              />
+              <path
+                className="reading-sheet__ghost-edge"
+                d="M42 29C123 10 308 33 493 14Q538 14 546 47C557 115 529 213 549 361Q554 394 521 397C403 386 269 406 50 394Q20 396 28 361C8 287 48 197 25 103Q18 49 42 29Z"
+              />
+              <path
+                className="reading-sheet__ghost-fold"
+                d="M498 20Q529 20 543 45Q524 38 508 26"
+              />
+            </svg>
+            <blockquote className="reading-sheet__passage">
+              <p>{activePassage.text}</p>
+            </blockquote>
+            <div className="leaf-switcher" aria-label="Preview passage leaf">
+              {underTheAlmondTreesPassages.map((passage, index) => (
+                <button
+                  key={passage.id}
+                  className="leaf-switcher__leaf"
+                  type="button"
+                  aria-label={`Show passage leaf ${passage.folio}`}
+                  aria-pressed={activePassageIndex === index}
+                  onClick={() => setActivePassageIndex(index)}
+                >
+                  {passage.folio}
+                </button>
+              ))}
+            </div>
+            <button
+              className="page-release"
+              type="button"
+              onClick={handleRelease}
+            >
+              release
+            </button>
+          </article>
+            </div>
+          </>
+        ) : (
+          <button className="page-replay" type="button" onClick={() => setPageState('open')}>
+            restore page
+          </button>
+        )}
+      </section>
     </main>
   )
 }
