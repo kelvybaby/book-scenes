@@ -1,11 +1,13 @@
 import {
   createWindProfile,
+  RELEASE_CONTACT_TIME,
   sampleWindMoments,
   WindField,
   type WindPhase,
   type WindProfile,
   type WindSample,
 } from './WindField'
+import type { AmbientWindField } from './AmbientWindField'
 
 type Constraint = {
   a: number
@@ -25,6 +27,11 @@ export type PaperEnvironment = {
   groundY: number
   groundSlopeX: number
   groundSlopeZ: number
+  pageScreenX: number
+  pageScreenY: number
+  cameraDistance: number
+  roadTopY: (screenX: number) => number
+  roadBottomY: (screenX: number) => number
 }
 
 export type PaperMotionState = {
@@ -36,10 +43,45 @@ export type PaperMotionState = {
   averageZ: number
   width: number
   height: number
+  normalZ: number
+  velocityX: number
+  velocityY: number
+  velocityZ: number
+}
+
+export type PaperReleaseMotionTuning = {
+  horizontalWindScale: number
+  horizontalDrag: number
+  shortGustStrength: number
+  stallStrength: number
+  depthWindScale?: number
+  depthGustStrength?: number
+  depthDrag?: number
+  verticalWindScale?: number
+  verticalDrag?: number
+  preserveScriptedVelocity?: boolean
+  contactSolverProvidesSupport?: boolean
+  preserveRoadContactPosition?: boolean
+  perVertexGroundContact?: boolean
+  aerodynamicAreaReferenceHeight?: number
+  gustLiftAcceleration?: number
+  edgeOnStabilityStrength?: number
+  edgeOnStabilityDamping?: number
+  handoffForceRampDuration?: number
+  handoffShapeRampDuration?: number
 }
 
 const FIXED_STEP = 1 / 120
 const SOLVER_ITERATIONS = 7
+const BEND_COMPLIANCE = 0.0000000
+export const PAPER_CONDENSE_END = 1.95
+const DESCENT_START = 1.45
+const DESCENT_END = RELEASE_CONTACT_TIME
+const WIND_HANDOFF = RELEASE_CONTACT_TIME
+export const PAPER_ROAD_PITCH = -Math.PI * 0.44
+export const PAPER_SCRIPTED_RELEASE_PITCH = -Math.PI * 0.38
+const ROAD_CLEARANCE_PX = 10
+const PER_VERTEX_CONTACT_SKIN = 0.08
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(Math.max(value, minimum), maximum)
@@ -61,8 +103,11 @@ export class PaperSheet {
   private readonly constraints: Constraint[] = []
   private readonly triangles: Triangle[] = []
   private readonly acceleration: Float32Array
+  private readonly releasePose: Float32Array
+  private readonly contactMask: Uint8Array
   private readonly profile: WindProfile
   private readonly wind: WindField
+  private readonly releaseMotionTuning: PaperReleaseMotionTuning | null
   private readonly windSample: WindSample = { x: 0, y: 0, z: 0 }
   private readonly initialWidth: number
   private readonly initialHeight: number
@@ -72,6 +117,10 @@ export class PaperSheet {
   private releaseTime = 0
   private phase: WindPhase = 'reading'
   private contactCount = 0
+  private minimumRoadClearance = Number.POSITIVE_INFINITY
+  private minimumRoadClearanceTime = 0
+  private stabilityFacingSign = 1
+  private preserveReleaseVelocityFrame = false
 
   constructor(
     width: number,
@@ -80,9 +129,13 @@ export class PaperSheet {
     seed: number,
     segmentsX = 18,
     segmentsY = 14,
+    ambientWind?: AmbientWindField,
+    releaseMotionTuning: PaperReleaseMotionTuning | null = null,
   ) {
     this.profile = createWindProfile(seed)
-    this.wind = new WindField(this.profile)
+    this.wind = new WindField(this.profile, ambientWind)
+    this.releaseMotionTuning = releaseMotionTuning
+    this.stabilityFacingSign = Math.cos(this.profile.phase) < 0 ? -1 : 1
     this.initialWidth = width
     this.initialHeight = height
     this.environment = environment
@@ -93,6 +146,8 @@ export class PaperSheet {
     this.previous = new Float32Array(vertexCount * 3)
     this.rest = new Float32Array(vertexCount * 3)
     this.acceleration = new Float32Array(vertexCount * 3)
+    this.releasePose = new Float32Array(vertexCount * 3)
+    this.contactMask = new Uint8Array(vertexCount)
 
     for (let row = 0; row <= segmentsY; row += 1) {
       for (let column = 0; column <= segmentsX; column += 1) {
@@ -113,6 +168,11 @@ export class PaperSheet {
         this.rest[offset] = x
         this.rest[offset + 1] = y
         this.rest[offset + 2] = 0
+        this.releasePose[offset] = x
+        this.releasePose[offset + 1] = y
+        // The released leaf begins as one flat page. Reading-state ripples do
+        // not become stored creases when it leaves the enlarged passage view.
+        this.releasePose[offset + 2] = 0
       }
     }
 
@@ -129,8 +189,12 @@ export class PaperSheet {
           const d = this.index(column + 1, row + 1)
           this.triangles.push([a, c, b], [b, c, d])
         }
-        if (column < segmentsX - 1) this.addConstraint(column, row, column + 2, row, 0.0022)
-        if (row < segmentsY - 1) this.addConstraint(column, row, column, row + 2, 0.0022)
+        if (column < segmentsX - 1) {
+          this.addConstraint(column, row, column + 2, row, BEND_COMPLIANCE)
+        }
+        if (row < segmentsY - 1) {
+          this.addConstraint(column, row, column, row + 2, BEND_COMPLIANCE)
+        }
       }
     }
   }
@@ -139,9 +203,25 @@ export class PaperSheet {
     this.environment = environment
   }
 
-  beginRelease() {
+  beginRelease(preserveCurrentState = false) {
     this.phase = 'release'
     this.releaseTime = 0
+    this.accumulator = 0
+    this.contactCount = 0
+    this.minimumRoadClearance = Number.POSITIVE_INFINITY
+    this.minimumRoadClearanceTime = 0
+    if (preserveCurrentState) {
+      // The feature solver begins from the live reading surface. Preserve both
+      // vertex positions and Verlet history so the handoff carries its current
+      // world pose and velocity instead of recreating a flat canonical sheet.
+      this.releasePose.set(this.positions)
+      this.preserveReleaseVelocityFrame = true
+    } else {
+      // The production fallback retains its established deterministic reset.
+      this.positions.set(this.releasePose)
+      this.previous.set(this.releasePose)
+      this.preserveReleaseVelocityFrame = false
+    }
   }
 
   advance(delta: number) {
@@ -171,6 +251,9 @@ export class PaperSheet {
     let totalX = 0
     let totalY = 0
     let totalZ = 0
+    let totalVelocityX = 0
+    let totalVelocityY = 0
+    let totalVelocityZ = 0
 
     for (let vertex = 0; vertex < vertexCount; vertex += 1) {
       const offset = vertex * 3
@@ -183,7 +266,24 @@ export class PaperSheet {
       totalX += x
       totalY += y
       totalZ += this.positions[offset + 2]
+      totalVelocityX += (x - this.previous[offset]) / FIXED_STEP
+      totalVelocityY += (y - this.previous[offset + 1]) / FIXED_STEP
+      totalVelocityZ += (this.positions[offset + 2] - this.previous[offset + 2]) / FIXED_STEP
     }
+
+    const topLeft = this.index(0, 0) * 3
+    const topRight = this.index(this.segmentsX, 0) * 3
+    const bottomLeft = this.index(0, this.segmentsY) * 3
+    const ux = this.positions[topRight] - this.positions[topLeft]
+    const uy = this.positions[topRight + 1] - this.positions[topLeft + 1]
+    const uz = this.positions[topRight + 2] - this.positions[topLeft + 2]
+    const vx = this.positions[topLeft] - this.positions[bottomLeft]
+    const vy = this.positions[topLeft + 1] - this.positions[bottomLeft + 1]
+    const vz = this.positions[topLeft + 2] - this.positions[bottomLeft + 2]
+    const normalX = uy * vz - uz * vy
+    const normalY = uz * vx - ux * vz
+    const normalZ = ux * vy - uy * vx
+    const normalLength = Math.hypot(normalX, normalY, normalZ) || 1
 
     return {
       releaseTime: this.releaseTime,
@@ -195,6 +295,10 @@ export class PaperSheet {
       averageZ: totalZ / vertexCount,
       width: maximumX - minimumX,
       height: maximumY - minimumY,
+      normalZ: normalZ / normalLength,
+      velocityX: totalVelocityX / vertexCount,
+      velocityY: totalVelocityY / vertexCount,
+      velocityZ: totalVelocityZ / vertexCount,
     }
   }
 
@@ -235,9 +339,19 @@ export class PaperSheet {
   private step(delta: number) {
     this.simulationTime += delta
     if (this.phase === 'release') this.releaseTime += delta
+
+    // Keep the first descent out of the triangle-by-triangle wind solver. A
+    // broadside falling leaf should move as one stiff sheet; only after it has
+    // settled on the road can a gust start to detach and carry it.
+    if (this.phase === 'release' && this.releaseTime <= WIND_HANDOFF) {
+      this.applyScriptedDescent()
+      return
+    }
+
     this.acceleration.fill(0)
     this.addAerodynamicForces(delta)
     this.addReleaseGuidance(delta)
+    this.addEdgeOnStabilityTorque(delta)
     this.integrate(delta)
 
     this.contactCount = 0
@@ -246,14 +360,473 @@ export class PaperSheet {
       for (const constraint of this.constraints) this.solveConstraint(constraint, delta)
       this.applyReadingTethers(delta)
       if (this.phase === 'release' && this.releaseTime > 1.24) {
-        this.applySettlingPose()
-        this.solveGroundContact(iteration === SOLVER_ITERATIONS - 1)
+        this.solveGroundContact(
+          this.releaseMotionTuning?.perVertexGroundContact
+            ? false
+            : iteration === SOLVER_ITERATIONS - 1,
+        )
+      }
+    }
+
+    if (this.phase === 'release') {
+      this.applyRigidShape(delta)
+      this.contactCount = 0
+      if (this.releaseMotionTuning?.perVertexGroundContact) this.contactMask.fill(0)
+      this.solveGroundContact(true)
+      // The painted-road boundary is a ground-contact rule, not an aerial
+      // flight cage. Once the gust lifts every vertex, the page is free to
+      // rise, tumble, and cross the projected boundary naturally.
+      if (this.contactCount > 0) {
+        if (this.releaseMotionTuning?.perVertexGroundContact) {
+          this.constrainContactVerticesToRoadCorridor()
+          // A screen-space road-edge correction can move an individual corner
+          // toward the sloped ground. Re-project only penetrating vertices;
+          // never raise the page centre as a substitute for contact handling.
+          this.solveGroundContact(false)
+        } else {
+          this.constrainToRoadCorridor()
+        }
+      }
+      const roadClearance = this.getRoadClearance()
+      if (roadClearance < this.minimumRoadClearance) {
+        this.minimumRoadClearance = roadClearance
+        this.minimumRoadClearanceTime = this.releaseTime
+      }
+    }
+  }
+
+  private applyScriptedDescent() {
+    const scale = this.currentScale()
+    const fallTime = clamp(
+      (this.releaseTime - DESCENT_START) / (DESCENT_END - DESCENT_START),
+      0,
+      1,
+    )
+    // Retain a non-zero initial descent velocity. Blending mostly linear time
+    // with a small smoothstep component avoids both a hard start and the
+    // visible aerial pause produced by a fully eased trajectory.
+    const fall = mix(fallTime, smoothstep(0, 1, fallTime), 0.35)
+    const swingProgress = clamp((fallTime - 0.18) / 0.82, 0, 1)
+    const airborne = Math.sin(swingProgress * Math.PI)
+    const landingEase = smoothstep(0.78, 1, fall)
+    const swingEnvelope =
+      Math.pow(Math.max(airborne, 0), 0.52) * smoothstep(0.18, 0.24, fallTime)
+    const swingPhase = swingProgress * Math.PI * 3.2
+    const swingAmplitude =
+      this.environment.targetWidth * mix(2.25, 1.2, fall) * swingEnvelope
+    const sideSwing = -Math.sin(swingPhase) * swingAmplitude
+    const centerX = fall * this.environment.targetWidth * 0.9 + sideSwing
+    const centerZ =
+      -fall * this.environment.targetHeight * 0.12 +
+      Math.sin(fall * Math.PI * 2.6) * swingEnvelope * 1.4
+    // Match the support height used by the rigid post-contact pose. Previously
+    // the scripted descent placed the page centre on the ground, so the solver
+    // had to lift the whole leaf on its first frame.
+    // The prototype hands off at the scripted pitch, not yet at the shallower
+    // road pitch. Give that exact pose enough clearance so the first contact
+    // solve does not have to translate and rotate a partially embedded sheet.
+    // Keep the production fallback's established support height unchanged.
+    const landingPitch = this.releaseMotionTuning?.preserveScriptedVelocity
+      ? PAPER_SCRIPTED_RELEASE_PITCH
+      : PAPER_ROAD_PITCH
+    const landingSupport =
+      this.environment.targetHeight * Math.abs(Math.cos(landingPitch)) * 0.5 + 1.4
+    const landingY = this.getGroundHeight(centerX, centerZ) + landingSupport
+    const condensation = smoothstep(0, PAPER_CONDENSE_END, this.releaseTime)
+    const condensedY = -this.environment.targetHeight * 2.3
+    const descentOriginY = mix(0, condensedY, condensation)
+    // Each lateral swing carries a shallow lift at its outer edge. This makes
+    // the path read as a sequence of falling arcs instead of a flat sine wave
+    // sliding down a constant vertical track.
+    const arcLift =
+      Math.pow(Math.abs(Math.sin(swingPhase)), 1.35) *
+      this.environment.targetHeight *
+      0.34 *
+      swingEnvelope *
+      (1 - landingEase)
+    const centerY = mix(descentOriginY, landingY, fall) + arcLift
+    // Reorient during the first falling beat, before the broad lateral swings.
+    // The final few degrees settle only near contact so the page does not snap
+    // mechanically into the road plane.
+    const flattenProgress = smoothstep(0.01, 0.17, fallTime)
+    const contactSettle = smoothstep(0.82, 1, fallTime)
+    // Negative pitch brings the lower edge toward the camera while leaving the
+    // upper edge farther away and slightly higher. Stop well short of 90deg so
+    // the page reads as a shallow plane throughout the swinging descent.
+    const pitch =
+      mix(0, -Math.PI * 0.34, flattenProgress) +
+      mix(0, PAPER_SCRIPTED_RELEASE_PITCH + Math.PI * 0.34, contactSettle)
+    const roll =
+      -Math.cos(swingPhase) * swingEnvelope * 0.085 *
+      (1 - landingEase * 0.8)
+    const cosinePitch = Math.cos(pitch)
+    const sinePitch = Math.sin(pitch)
+    const cosineRoll = Math.cos(roll)
+    const sineRoll = Math.sin(roll)
+    const rippleEnvelope =
+      smoothstep(0.08, 0.32, fall) * (1 - smoothstep(0.8, 1, fall))
+    const rippleAmplitude = rippleEnvelope * 0.88
+
+    this.contactCount = 0
+    for (let row = 0; row <= this.segmentsY; row += 1) {
+      for (let column = 0; column <= this.segmentsX; column += 1) {
+        const vertex = this.index(column, row)
+        const offset = vertex * 3
+        const normalizedX = column / this.segmentsX
+        const normalizedY = row / this.segmentsY
+        const localX = this.releasePose[offset] * scale.x
+        const localY = this.releasePose[offset + 1] * scale.y
+        const inheritedDepth = this.releasePose[offset + 2]
+        const ripple =
+          Math.sin(normalizedX * Math.PI * 2.1 + normalizedY * Math.PI * 0.7) *
+          Math.sin(normalizedY * Math.PI) *
+          rippleAmplitude
+        const rolledX = localX * cosineRoll - localY * sineRoll
+        const rolledY = localX * sineRoll + localY * cosineRoll
+        const localDepth = inheritedDepth + ripple
+        const pitchedY = rolledY * cosinePitch - localDepth * sinePitch
+        const pitchedZ = rolledY * sinePitch + localDepth * cosinePitch
+        const x = centerX + rolledX
+        const z = centerZ + pitchedZ
+        const y =
+          centerY +
+          pitchedY +
+          (this.environment.groundSlopeX * rolledX +
+            this.environment.groundSlopeZ * pitchedZ) *
+            landingEase
+
+        const previousX = this.positions[offset]
+        const previousY = this.positions[offset + 1]
+        const previousZ = this.positions[offset + 2]
+
+        this.positions[offset] = x
+        this.positions[offset + 1] = y
+        this.positions[offset + 2] = z
+        if (
+          this.releaseMotionTuning?.preserveScriptedVelocity &&
+          !this.preserveReleaseVelocityFrame
+        ) {
+          this.previous[offset] = previousX
+          this.previous[offset + 1] = previousY
+          this.previous[offset + 2] = previousZ
+        } else if (!this.releaseMotionTuning?.preserveScriptedVelocity) {
+          this.previous[offset] = x
+          this.previous[offset + 1] = y
+          this.previous[offset + 2] = z
+        }
+      }
+    }
+    this.preserveReleaseVelocityFrame = false
+
+    if (fall >= 1) {
+      if (this.releaseMotionTuning?.preserveScriptedVelocity) {
+        // The prototype landing pose is already aimed at the road. Do not
+        // recenter it on the final scripted frame: that produced the visible
+        // handoff shift and applied a road-boundary rule before real contact.
+        // Resolve the landing pose vertex-by-vertex on this exact frame so a
+        // corner cannot spend one rendered frame below the contact plane.
+        this.solveGroundContact(false)
+        this.contactCount = 0
+      } else {
+        this.contactCount = this.positions.length / 3
+        this.constrainToRoadCorridor(1)
+      }
+    }
+  }
+
+  private constrainToRoadCorridor(landingCenterBlend = 0) {
+    const beforeHandoff = this.releaseTime < WIND_HANDOFF
+    if (beforeHandoff && landingCenterBlend <= 0) return
+
+    const environment = this.environment
+    const vertexCount = this.positions.length / 3
+    const desiredPadding = Math.max(
+      ROAD_CLEARANCE_PX,
+      environment.targetHeight * 0.2,
+    )
+
+    // Treat the painted road as a hard screen-space invariant, while gently
+    // biasing a safely contained page back toward the lane centre. The desired
+    // visual margin is reduced only when the current projected footprint makes
+    // it geometrically impossible; the zero-margin road boundary is retained.
+    const passCount = beforeHandoff ? 1 : 4
+    for (let pass = 0; pass < passCount; pass += 1) {
+      let minimumWithoutPadding = Number.NEGATIVE_INFINITY
+      let maximumWithoutPadding = Number.POSITIVE_INFINITY
+      let totalProjectionScale = 0
+
+      for (let vertex = 0; vertex < vertexCount; vertex += 1) {
+        const offset = vertex * 3
+        const z = this.positions[offset + 2]
+        const projectionScale =
+          environment.cameraDistance /
+          Math.max(environment.cameraDistance - z, environment.cameraDistance * 0.2)
+        const screenX = environment.pageScreenX + this.positions[offset] * projectionScale
+        const screenY = environment.pageScreenY - this.positions[offset + 1] * projectionScale
+        const roadTop = environment.roadTopY(screenX)
+        const roadBottom = environment.roadBottomY(screenX)
+
+        minimumWithoutPadding = Math.max(minimumWithoutPadding, roadTop - screenY)
+        maximumWithoutPadding = Math.min(maximumWithoutPadding, roadBottom - screenY)
+        totalProjectionScale += projectionScale
+      }
+
+      const feasiblePadding = Math.max(
+        0,
+        (maximumWithoutPadding - minimumWithoutPadding) * 0.5 - 0.25,
+      )
+      const corridorPadding = Math.min(desiredPadding, feasiblePadding)
+      const minimumScreenShift = minimumWithoutPadding + corridorPadding
+      const maximumScreenShift = maximumWithoutPadding - corridorPadding
+      const centredScreenShift = (minimumScreenShift + maximumScreenShift) * 0.5
+
+      let screenShift: number
+      if (beforeHandoff) {
+        screenShift = centredScreenShift * landingCenterBlend
+      } else if (minimumScreenShift > maximumScreenShift) {
+        screenShift = (minimumScreenShift + maximumScreenShift) * 0.5
+      } else if (minimumScreenShift > 0) {
+        screenShift = minimumScreenShift
+      } else if (maximumScreenShift < 0) {
+        screenShift = maximumScreenShift
+      } else {
+        // The prototype retains the exact contact position while safely
+        // inside the lane. The hard road edges still correct a real overlap,
+        // but do not recenter a valid landing at the solver handoff.
+        screenShift = this.releaseMotionTuning?.preserveRoadContactPosition
+          ? 0
+          : pass === 0
+            ? centredScreenShift
+            : 0
+      }
+
+      if (Math.abs(screenShift) < 0.01) break
+      const averageProjectionScale = totalProjectionScale / vertexCount
+      const worldShiftY = -screenShift / averageProjectionScale
+
+      for (let vertex = 0; vertex < vertexCount; vertex += 1) {
+        const offset = vertex * 3 + 1
+        this.positions[offset] += worldShiftY
+        this.previous[offset] += worldShiftY
+      }
+    }
+  }
+
+  private constrainContactVerticesToRoadCorridor() {
+    const environment = this.environment
+    const desiredPadding = Math.max(
+      ROAD_CLEARANCE_PX,
+      environment.targetHeight * 0.2,
+    )
+
+    for (let vertex = 0; vertex < this.contactMask.length; vertex += 1) {
+      if (this.contactMask[vertex] === 0) continue
+      const offset = vertex * 3
+      const z = this.positions[offset + 2]
+      const projectionScale =
+        environment.cameraDistance /
+        Math.max(environment.cameraDistance - z, environment.cameraDistance * 0.2)
+      const screenX = environment.pageScreenX + this.positions[offset] * projectionScale
+      const screenY = environment.pageScreenY - this.positions[offset + 1] * projectionScale
+      const roadTop = environment.roadTopY(screenX) + desiredPadding
+      const roadBottom = environment.roadBottomY(screenX) - desiredPadding
+      const targetScreenY = clamp(screenY, Math.min(roadTop, roadBottom), Math.max(roadTop, roadBottom))
+      const worldShiftY = -(targetScreenY - screenY) / projectionScale
+      if (Math.abs(worldShiftY) < 0.001) continue
+
+      this.positions[offset + 1] += worldShiftY
+      this.previous[offset + 1] += worldShiftY
+    }
+  }
+
+  getRoadClearance() {
+    if (this.releaseTime < WIND_HANDOFF) return Number.POSITIVE_INFINITY
+
+    const environment = this.environment
+    const vertexCount = this.positions.length / 3
+    let minimumClearance = Number.POSITIVE_INFINITY
+
+    for (let vertex = 0; vertex < vertexCount; vertex += 1) {
+      const offset = vertex * 3
+      const z = this.positions[offset + 2]
+      const projectionScale =
+        environment.cameraDistance /
+        Math.max(environment.cameraDistance - z, environment.cameraDistance * 0.2)
+      const screenX = environment.pageScreenX + this.positions[offset] * projectionScale
+      const screenY = environment.pageScreenY - this.positions[offset + 1] * projectionScale
+      minimumClearance = Math.min(
+        minimumClearance,
+        screenY - environment.roadTopY(screenX),
+        environment.roadBottomY(screenX) - screenY,
+      )
+    }
+
+    return minimumClearance
+  }
+
+  getMinimumRoadClearance() {
+    return this.minimumRoadClearance
+  }
+
+  getMinimumRoadClearanceTime() {
+    return this.minimumRoadClearanceTime
+  }
+
+  getMinimumGroundClearance() {
+    const normalLength = Math.hypot(
+      -this.environment.groundSlopeX,
+      1,
+      -this.environment.groundSlopeZ,
+    )
+    let minimumClearance = Number.POSITIVE_INFINITY
+    for (let vertex = 0; vertex < this.positions.length / 3; vertex += 1) {
+      const offset = vertex * 3
+      const x = this.positions[offset]
+      const y = this.positions[offset + 1]
+      const z = this.positions[offset + 2]
+      minimumClearance = Math.min(
+        minimumClearance,
+        (y - this.getGroundHeight(x, z)) / normalLength,
+      )
+    }
+    return minimumClearance
+  }
+
+  private applyRigidShape(delta: number) {
+    const vertexCount = this.positions.length / 3
+    const scale = this.currentScale()
+    let centerX = 0
+    let centerY = 0
+    let centerZ = 0
+    let leftX = 0
+    let leftY = 0
+    let leftZ = 0
+    let rightX = 0
+    let rightY = 0
+    let rightZ = 0
+    let topX = 0
+    let topY = 0
+    let topZ = 0
+    let bottomX = 0
+    let bottomY = 0
+    let bottomZ = 0
+
+    for (let row = 0; row <= this.segmentsY; row += 1) {
+      for (let column = 0; column <= this.segmentsX; column += 1) {
+        const offset = this.index(column, row) * 3
+        const x = this.positions[offset]
+        const y = this.positions[offset + 1]
+        const z = this.positions[offset + 2]
+        centerX += x
+        centerY += y
+        centerZ += z
+        if (column === 0) {
+          leftX += x
+          leftY += y
+          leftZ += z
+        }
+        if (column === this.segmentsX) {
+          rightX += x
+          rightY += y
+          rightZ += z
+        }
+        if (row === 0) {
+          topX += x
+          topY += y
+          topZ += z
+        }
+        if (row === this.segmentsY) {
+          bottomX += x
+          bottomY += y
+          bottomZ += z
+        }
+      }
+    }
+
+    centerX /= vertexCount
+    centerY /= vertexCount
+    centerZ /= vertexCount
+
+    // Rebuild a stiff sheet around its current orientation. Deriving both
+    // axes from the simulated edges preserves tumbling caused by uneven wind;
+    // forcing them back to the road orientation made the leaf slide flat.
+    let ux = rightX - leftX
+    let uy = rightY - leftY
+    let uz = rightZ - leftZ
+    const currentWidth = Math.hypot(ux, uy, uz) || 1
+    ux /= currentWidth
+    uy /= currentWidth
+    uz /= currentWidth
+
+    let vx = topX - bottomX
+    let vy = topY - bottomY
+    let vz = topZ - bottomZ
+    const projection = vx * ux + vy * uy + vz * uz
+    vx -= ux * projection
+    vy -= uy * projection
+    vz -= uz * projection
+    const vLength = Math.hypot(vx, vy, vz) || 1
+    vx /= vLength
+    vy /= vLength
+    vz /= vLength
+
+    const groundCenter = this.getGroundHeight(centerX, centerZ)
+    const minimumCenterY =
+      groundCenter +
+      this.environment.targetWidth * Math.abs(uy) * 0.5 +
+      this.environment.targetHeight * Math.abs(vy) * 0.5 +
+      1.4
+    if (!this.releaseMotionTuning?.contactSolverProvidesSupport) {
+      centerY = Math.max(centerY, minimumCenterY)
+    }
+
+    const nx = uy * vz - uz * vy
+    const ny = uz * vx - ux * vz
+    const nz = ux * vy - uy * vx
+    const moments = sampleWindMoments(this.profile, this.releaseTime)
+    const activity = Math.max(moments.actionFlutter, moments.edgeCatch, moments.finalSweep)
+    const rippleAmplitude = 0.16 + activity * (0.52 + this.profile.flutter * 0.18)
+    const shapeBlend =
+      (1 - Math.exp(-delta * (50 - activity * 10))) *
+      this.postHandoffResponse(this.releaseMotionTuning?.handoffShapeRampDuration)
+
+    for (let row = 0; row <= this.segmentsY; row += 1) {
+      for (let column = 0; column <= this.segmentsX; column += 1) {
+        const vertex = this.index(column, row)
+        const offset = vertex * 3
+        const normalizedX = column / this.segmentsX
+        const normalizedY = row / this.segmentsY
+        const localX = this.rest[offset] * scale.x
+        const localY = this.rest[offset + 1] * scale.y
+        const ripple =
+          Math.sin(
+            normalizedX * Math.PI * 2.15 +
+              normalizedY * Math.PI * 0.65 -
+              this.releaseTime * (2.4 + this.profile.plan.flutterFrequency * 0.32) +
+              this.profile.phase,
+          ) *
+          Math.sin(normalizedY * Math.PI) *
+          rippleAmplitude
+        const targetX = centerX + ux * localX + vx * localY + nx * ripple
+        const targetY = centerY + uy * localX + vy * localY + ny * ripple
+        const targetZ = centerZ + uz * localX + vz * localY + nz * ripple
+        const correctionX = (targetX - this.positions[offset]) * shapeBlend
+        const correctionY = (targetY - this.positions[offset + 1]) * shapeBlend
+        const correctionZ = (targetZ - this.positions[offset + 2]) * shapeBlend
+
+        this.positions[offset] += correctionX
+        this.positions[offset + 1] += correctionY
+        this.positions[offset + 2] += correctionZ
+        this.previous[offset] += correctionX
+        this.previous[offset + 1] += correctionY
+        this.previous[offset + 2] += correctionZ
       }
     }
   }
 
   private currentScale() {
-    const progress = this.phase === 'release' ? smoothstep(0, 1.95, this.releaseTime) : 0
+    const progress =
+      this.phase === 'release' ? smoothstep(0, PAPER_CONDENSE_END, this.releaseTime) : 0
     return {
       x: mix(1, this.environment.targetWidth / this.initialWidth, progress),
       y: mix(1, this.environment.targetHeight / this.initialHeight, progress),
@@ -276,6 +849,22 @@ export class PaperSheet {
       releaseStrength * 0.14 +
       condensationAir * 1.05 +
       finalSweep * (0.72 + this.profile.strength * 0.12)
+    const horizontalWindMultiplier = this.horizontalWindMultiplier()
+    const depthWindMultiplier = this.depthWindMultiplier()
+    const verticalWindScale =
+      this.releaseMotionTuning && this.releaseTime > WIND_HANDOFF
+        ? (this.releaseMotionTuning.verticalWindScale ?? 1)
+        : 1
+    const forceResponse = this.postHandoffResponse(
+      this.releaseMotionTuning?.handoffForceRampDuration,
+    )
+    const aerodynamicAreaScale = this.releaseMotionTuning?.aerodynamicAreaReferenceHeight
+      ? Math.pow(
+          this.releaseMotionTuning.aerodynamicAreaReferenceHeight /
+            this.environment.targetHeight,
+          2,
+        )
+      : 1
 
     for (const [a, b, c] of this.triangles) {
       const ia = a * 3
@@ -303,7 +892,7 @@ export class PaperSheet {
         centerX,
         centerY,
         centerZ,
-        this.simulationTime,
+        this.phase === 'release' ? this.releaseTime : this.simulationTime,
         this.phase,
         this.releaseTime,
         this.windSample,
@@ -323,21 +912,191 @@ export class PaperSheet {
           (this.positions[ib + 2] - this.previous[ib + 2]) +
           (this.positions[ic + 2] - this.previous[ic + 2])) /
         (3 * delta)
-      const relativeX = wind.x - velocityX
-      const relativeY = wind.y - velocityY
-      const relativeZ = wind.z - velocityZ
+      const relativeX = wind.x * horizontalWindMultiplier - velocityX
+      const relativeY = wind.y * verticalWindScale - velocityY
+      const relativeZ = wind.z * depthWindMultiplier - velocityZ
       const normalSpeed = relativeX * nx + relativeY * ny + relativeZ * nz
       const area = doubleArea * 0.5
-      const pressure = normalSpeed * Math.abs(normalSpeed) * area * normalCoefficient
-      const forceX = nx * pressure + relativeX * tangentialDrag
-      const forceY = ny * pressure + relativeY * tangentialDrag
-      const forceZ = nz * pressure + relativeZ * tangentialDrag
+      // Responsive sheets keep the same number of equal-mass vertices. In the
+      // feature solver, compensate triangle pressure for the smaller rendered
+      // area so the mobile page does not become artificially heavy.
+      const pressure =
+        normalSpeed *
+        Math.abs(normalSpeed) *
+        area *
+        normalCoefficient *
+        aerodynamicAreaScale
+      const forceX = (nx * pressure + relativeX * tangentialDrag) * forceResponse
+      const expectedTriangleArea =
+        (this.environment.targetWidth * this.environment.targetHeight) /
+        this.triangles.length
+      const areaResponse = clamp(area / Math.max(expectedTriangleArea, 0.001), 0.45, 1.8)
+      const liftEnvelope =
+        moments.firstLift +
+        moments.exitAttack * 0.46 +
+        moments.exitSecond * 0.28 +
+        moments.exitTail * 0.16
+      const gustLift =
+        (this.releaseMotionTuning?.gustLiftAcceleration ?? 0) *
+        liftEnvelope *
+        Math.abs(ny) *
+        areaResponse
+      const forceY =
+        (ny * pressure + relativeY * tangentialDrag + gustLift) * forceResponse
+      const forceZ = (nz * pressure + relativeZ * tangentialDrag) * forceResponse
 
       for (const offset of [ia, ib, ic]) {
         this.acceleration[offset] += forceX / 3
         this.acceleration[offset + 1] += forceY / 3
         this.acceleration[offset + 2] += forceZ / 3
       }
+    }
+  }
+
+  private horizontalWindMultiplier() {
+    if (!this.releaseMotionTuning || this.phase !== 'release' || this.releaseTime <= WIND_HANDOFF) {
+      return 1
+    }
+
+    const age = this.releaseTime - WIND_HANDOFF
+    // Narrow sine lobes provide deterministic, temporally coherent gusts and
+    // stalls. They alter only post-contact horizontal translation; the
+    // scripted descent, lift, deformation wind, and simulation clock are left
+    // untouched.
+    const shortGust = Math.pow(
+      Math.max(0, Math.sin(age * 2.35 + this.profile.phase * 0.43)),
+      4,
+    )
+    const stall = Math.pow(
+      Math.max(0, Math.sin(age * 1.31 + this.profile.phase * 0.71 + 2.2)),
+      3,
+    )
+    const tuning = this.releaseMotionTuning
+    return (
+      tuning.horizontalWindScale *
+      (1 + shortGust * tuning.shortGustStrength) *
+      (1 - stall * tuning.stallStrength)
+    )
+  }
+
+  private depthWindMultiplier() {
+    const tuning = this.releaseMotionTuning
+    if (
+      !tuning ||
+      tuning.depthWindScale === undefined ||
+      this.phase !== 'release' ||
+      this.releaseTime <= WIND_HANDOFF
+    ) {
+      return 1
+    }
+
+    const age = this.releaseTime - WIND_HANDOFF
+    const signedGust =
+      Math.sin(age * 1.17 + this.profile.phase * 0.61) *
+      (0.62 + Math.sin(age * 0.43 + this.profile.phase * 0.29) * 0.38)
+    return tuning.depthWindScale + signedGust * (tuning.depthGustStrength ?? 0)
+  }
+
+  private postHandoffResponse(duration?: number) {
+    if (!this.releaseMotionTuning || duration === undefined) return 1
+    if (duration <= 0) return 1
+    return smoothstep(0, duration, this.releaseTime - WIND_HANDOFF)
+  }
+
+  private addEdgeOnStabilityTorque(delta: number) {
+    const tuning = this.releaseMotionTuning
+    const strength = tuning?.edgeOnStabilityStrength ?? 0
+    if (strength <= 0 || this.phase !== 'release' || this.releaseTime <= WIND_HANDOFF) return
+
+    const vertexCount = this.positions.length / 3
+    let centerX = 0
+    let centerY = 0
+    let centerZ = 0
+    let velocityX = 0
+    let velocityY = 0
+    let velocityZ = 0
+    for (let vertex = 0; vertex < vertexCount; vertex += 1) {
+      const offset = vertex * 3
+      centerX += this.positions[offset]
+      centerY += this.positions[offset + 1]
+      centerZ += this.positions[offset + 2]
+      velocityX += (this.positions[offset] - this.previous[offset]) / delta
+      velocityY += (this.positions[offset + 1] - this.previous[offset + 1]) / delta
+      velocityZ += (this.positions[offset + 2] - this.previous[offset + 2]) / delta
+    }
+    centerX /= vertexCount
+    centerY /= vertexCount
+    centerZ /= vertexCount
+    velocityX /= vertexCount
+    velocityY /= vertexCount
+    velocityZ /= vertexCount
+
+    const topLeft = this.index(0, 0) * 3
+    const topRight = this.index(this.segmentsX, 0) * 3
+    const bottomLeft = this.index(0, this.segmentsY) * 3
+    const ux = this.positions[topRight] - this.positions[topLeft]
+    const uy = this.positions[topRight + 1] - this.positions[topLeft + 1]
+    const uz = this.positions[topRight + 2] - this.positions[topLeft + 2]
+    const vx = this.positions[topLeft] - this.positions[bottomLeft]
+    const vy = this.positions[topLeft + 1] - this.positions[bottomLeft + 1]
+    const vz = this.positions[topLeft + 2] - this.positions[bottomLeft + 2]
+    let normalX = uy * vz - uz * vy
+    let normalY = uz * vx - ux * vz
+    let normalZ = ux * vy - uy * vx
+    const normalLength = Math.hypot(normalX, normalY, normalZ) || 1
+    normalX /= normalLength
+    normalY /= normalLength
+    normalZ /= normalLength
+
+    if (Math.abs(normalZ) > 0.18) this.stabilityFacingSign = normalZ < 0 ? -1 : 1
+    const handoffResponse = this.postHandoffResponse(tuning?.handoffForceRampDuration)
+    const activation =
+      (1 - smoothstep(0.14, 0.55, Math.abs(normalZ))) * handoffResponse
+    if (activation <= 0) return
+
+    // Rotate the current normal gently toward the nearer camera-facing side.
+    // The remembered sign supplies hysteresis around zero: sufficient angular
+    // momentum can still turn the page over, after which the opposite side is
+    // stabilized instead of snapping back.
+    let torqueX = normalY * this.stabilityFacingSign * strength * activation
+    let torqueY = -normalX * this.stabilityFacingSign * strength * activation
+    let torqueZ = 0
+    let angularX = 0
+    let angularY = 0
+    let angularZ = 0
+    let inertia = 0
+
+    for (let vertex = 0; vertex < vertexCount; vertex += 1) {
+      const offset = vertex * 3
+      const rx = this.positions[offset] - centerX
+      const ry = this.positions[offset + 1] - centerY
+      const rz = this.positions[offset + 2] - centerZ
+      const relativeVelocityX =
+        (this.positions[offset] - this.previous[offset]) / delta - velocityX
+      const relativeVelocityY =
+        (this.positions[offset + 1] - this.previous[offset + 1]) / delta - velocityY
+      const relativeVelocityZ =
+        (this.positions[offset + 2] - this.previous[offset + 2]) / delta - velocityZ
+      angularX += ry * relativeVelocityZ - rz * relativeVelocityY
+      angularY += rz * relativeVelocityX - rx * relativeVelocityZ
+      angularZ += rx * relativeVelocityY - ry * relativeVelocityX
+      inertia += rx * rx + ry * ry + rz * rz
+    }
+
+    const damping = (tuning?.edgeOnStabilityDamping ?? 0) * activation
+    const inverseInertia = 1 / Math.max(inertia, 0.001)
+    torqueX -= angularX * inverseInertia * damping
+    torqueY -= angularY * inverseInertia * damping
+    torqueZ -= angularZ * inverseInertia * damping
+
+    for (let vertex = 0; vertex < vertexCount; vertex += 1) {
+      const offset = vertex * 3
+      const rx = this.positions[offset] - centerX
+      const ry = this.positions[offset + 1] - centerY
+      const rz = this.positions[offset + 2] - centerZ
+      this.acceleration[offset] += torqueY * rz - torqueZ * ry
+      this.acceleration[offset + 1] += torqueZ * rx - torqueX * rz
+      this.acceleration[offset + 2] += torqueX * ry - torqueY * rx
     }
   }
 
@@ -353,54 +1112,33 @@ export class PaperSheet {
     const settlingTurn =
       smoothstep(1.82, 2.2, settlingTime) *
       (1 - smoothstep(2.78, 3.08, settlingTime))
-    const actionFlutter = moments.actionFlutter
-    const finalSweep = moments.finalSweep
+    const plan = this.profile.plan
+    const secondaryAge = settlingTime - plan.secondaryGustTime
+    const wanderingCatch =
+      plan.personality === 'wandering'
+        ? smoothstep(0.32, 0.54, secondaryAge) *
+          (1 - smoothstep(0.78, 1.08, secondaryAge)) *
+          plan.flutterAmplitude *
+          0.58
+        : 0
+    const localizedCatch = Math.max(moments.edgeCatch, wanderingCatch)
     const landingCenterY = this.environment.groundY + this.environment.targetHeight * 0.44
     const targetScale = this.currentScale()
     const vertexCount = this.positions.length / 3
-    const roadHold = smoothstep(2.45, 3.25, settlingTime)
-    let averageVelocityY = 0
-    let averageVelocityZ = 0
-
-    for (let vertex = 0; vertex < vertexCount; vertex += 1) {
-      const offset = vertex * 3
-      averageVelocityY += (this.positions[offset + 1] - this.previous[offset + 1]) / delta
-      averageVelocityZ += (this.positions[offset + 2] - this.previous[offset + 2]) / delta
-    }
-    averageVelocityY /= vertexCount
-    averageVelocityZ /= vertexCount
-
-    const centerGround = this.getGroundHeight(state.averageX, state.averageZ)
-    const centerClearance = state.averageY - centerGround
-    const nearRoad =
-      1 -
-      smoothstep(
-        this.environment.targetHeight * 0.65,
-        this.environment.targetHeight * 1.1,
-        centerClearance,
-      )
-    const liftCeiling = this.environment.targetHeight * (0.18 + actionFlutter * 0.04)
-    const excessLift = Math.max(0, centerClearance - liftCeiling)
-    const ceilingApproach = smoothstep(liftCeiling * 0.72, liftCeiling, centerClearance)
-    const roadLiftCorrection =
-      (-excessLift * 32 - Math.max(0, averageVelocityY) * 4.5 * ceilingApproach) *
-      roadHold *
-      nearRoad
-    const roadDepthCorrection =
-      (-state.averageZ * 4.2 - averageVelocityZ * 2.8) * roadHold
-
     for (let vertex = 0; vertex < vertexCount; vertex += 1) {
       const offset = vertex * 3
       const row = Math.floor(vertex / (this.segmentsX + 1))
       const column = vertex % (this.segmentsX + 1)
       const normalizedX = column / this.segmentsX
       const normalizedY = row / this.segmentsY
-      const surface =
-        this.positions[offset + 1] - this.getGroundHeight(this.positions[offset], this.positions[offset + 2])
-
+      const edgeDistance = Math.min(
+        normalizedX,
+        1 - normalizedX,
+        normalizedY,
+        1 - normalizedY,
+      )
       this.acceleration[offset] += -state.averageX * 0.34 * handoffHold
-      this.acceleration[offset + 1] += roadLiftCorrection
-      this.acceleration[offset + 2] += -state.averageZ * 2.4 * handoffHold + roadDepthCorrection
+      this.acceleration[offset + 2] += -state.averageZ * 2.4 * handoffHold
       this.acceleration[offset + 1] += (landingCenterY - state.averageY) * 8 * fallGuide
       this.acceleration[offset + 2] +=
         (-this.environment.targetHeight * 0.16 - state.averageZ) * 2.1 * settlingTurn
@@ -411,11 +1149,31 @@ export class PaperSheet {
       this.acceleration[offset + 1] -=
         cornerLead * smoothstep(0.55, 1.7, settlingTime) * 7.5
 
-      // The last gust skims the road rather than lofting the leaf through the
-      // doorway. It can still curl and detach, but its centre stays only a few
-      // centimetres above the projected ground plane.
-      if (finalSweep > 0 && surface > 30) {
-        this.acceleration[offset + 1] -= (surface - 30) * 8.5 * finalSweep
+      if (localizedCatch > 0) {
+        const useWanderingCatch = wanderingCatch > moments.edgeCatch
+        const catchX = useWanderingCatch ? Math.min(0.96, plan.catchX + 0.28) : plan.catchX
+        const catchY = useWanderingCatch ? 1 - plan.catchY : plan.catchY
+        const distanceX = (normalizedX - catchX) * 1.12
+        const distanceY = normalizedY - catchY
+        const source = Math.exp(-(distanceX * distanceX + distanceY * distanceY) * 13.5)
+        const edgeBand = 1 - smoothstep(0.045, 0.27, edgeDistance)
+        const travelPhase = secondaryAge * plan.flutterFrequency * Math.PI * 2
+        const travellingWave =
+          0.5 +
+          Math.sin(
+            (normalizedX - catchX) * Math.PI * 2.2 +
+              (normalizedY - catchY) * Math.PI * 1.35 -
+              travelPhase,
+          ) *
+            0.5
+        const catchWeight =
+          localizedCatch *
+          (source * 0.72 + edgeBand * travellingWave * 0.28) *
+          this.postHandoffResponse(this.releaseMotionTuning?.handoffForceRampDuration)
+        this.acceleration[offset] += catchWeight * 8 * plan.lateralAcceleration
+        this.acceleration[offset + 1] += catchWeight * (8 + plan.flutterAmplitude * 11)
+        this.acceleration[offset + 2] +=
+          catchWeight * (travellingWave - 0.42) * (54 + plan.flutterAmplitude * 42)
       }
 
       if (settlingTime < 2.1) {
@@ -454,6 +1212,18 @@ export class PaperSheet {
       let velocityX = (this.positions[offset] - this.previous[offset]) * damping
       let velocityY = (this.positions[offset + 1] - this.previous[offset + 1]) * damping
       let velocityZ = (this.positions[offset + 2] - this.previous[offset + 2]) * damping
+      if (this.releaseMotionTuning && this.releaseTime > WIND_HANDOFF) {
+        const dragResponse = this.postHandoffResponse(
+          this.releaseMotionTuning.handoffForceRampDuration,
+        )
+        velocityX *= Math.exp(-this.releaseMotionTuning.horizontalDrag * dragResponse * delta)
+        velocityY *= Math.exp(
+          -(this.releaseMotionTuning.verticalDrag ?? 0) * dragResponse * delta,
+        )
+        velocityZ *= Math.exp(
+          -(this.releaseMotionTuning.depthDrag ?? 0) * dragResponse * delta,
+        )
+      }
       const speed = Math.hypot(velocityX, velocityY, velocityZ) / delta
       if (speed > maximumSpeed) {
         const speedScale = maximumSpeed / speed
@@ -491,9 +1261,12 @@ export class PaperSheet {
       this.phase === 'release'
         ? Math.max(moments.actionFlutter, moments.condensationAir * 0.9)
         : 0
+    // Wind may curve a page, but it must not turn the paper into cloth. Keep
+    // the two-step bend constraints nearly rigid as gust energy rises; the
+    // spatially varying aerodynamic forces still create broad ripples.
     const bendFlex =
-      constraint.compliance >= 0.002
-        ? 1 + aerodynamicActivity * (2.8 + (this.profile.flutter - 1) * 2.5)
+      constraint.compliance === BEND_COMPLIANCE
+        ? 1 + clamp(aerodynamicActivity, 0, 1) * (0.18 + (this.profile.flutter - 1) * 0.16)
         : 1
     const alpha = (constraint.compliance * bendFlex) / (delta * delta)
     const value = length - targetLength
@@ -538,7 +1311,9 @@ export class PaperSheet {
     const nx = normalX / normalLength
     const ny = normalY / normalLength
     const nz = normalZ / normalLength
-    const finalSweep = sampleWindMoments(this.profile, this.releaseTime).finalSweep
+    const moments = sampleWindMoments(this.profile, this.releaseTime)
+    const finalSweep = moments.finalSweep
+    const perVertexRelease = this.releaseMotionTuning?.perVertexGroundContact === true
 
     for (let vertex = 0; vertex < vertexCount; vertex += 1) {
       const offset = vertex * 3
@@ -547,63 +1322,65 @@ export class PaperSheet {
       const z = this.positions[offset + 2]
       const ground = this.getGroundHeight(x, z)
       const signedDistance = (y - ground) / normalLength
-      if (signedDistance > 1.2) continue
-
-      if (signedDistance < 0) {
-        const correction = -signedDistance
-        this.positions[offset] += nx * correction
-        this.positions[offset + 1] += ny * correction
-        this.positions[offset + 2] += nz * correction
-      }
+      if (signedDistance > (perVertexRelease ? 0.12 : 1.2)) continue
 
       const velocityX = this.positions[offset] - this.previous[offset]
       const velocityY = this.positions[offset + 1] - this.previous[offset + 1]
       const velocityZ = this.positions[offset + 2] - this.previous[offset + 2]
       const normalVelocity = velocityX * nx + velocityY * ny + velocityZ * nz
+      if (perVertexRelease && signedDistance >= 0 && normalVelocity >= 0) continue
+
+      const contactSkin = perVertexRelease ? PER_VERTEX_CONTACT_SKIN : 0
+      if (signedDistance < contactSkin) {
+        const correction = contactSkin - signedDistance
+        this.positions[offset] += nx * correction
+        this.positions[offset + 1] += ny * correction
+        this.positions[offset + 2] += nz * correction
+        if (perVertexRelease) {
+          // Geometric depenetration is not an impulse. Shift Verlet history by
+          // the same amount so correction cannot create a sudden upward jump.
+          this.previous[offset] += nx * correction
+          this.previous[offset + 1] += ny * correction
+          this.previous[offset + 2] += nz * correction
+        }
+      }
+
+      if (perVertexRelease) {
+        if (normalVelocity < 0) {
+          const tangentialX = velocityX - nx * normalVelocity
+          const tangentialY = velocityY - ny * normalVelocity
+          const tangentialZ = velocityZ - nz * normalVelocity
+          const contactSlip =
+            moments.firstLift * clamp((this.profile.strength - 0.72) / 0.65, 0, 1)
+          const friction = countContact
+            ? mix(mix(0.72, 0.18, finalSweep), 0.24, contactSlip)
+            : 0
+          const retainedTangent = 1 - friction
+          this.previous[offset] =
+            this.positions[offset] - tangentialX * retainedTangent
+          this.previous[offset + 1] =
+            this.positions[offset + 1] - tangentialY * retainedTangent
+          this.previous[offset + 2] =
+            this.positions[offset + 2] - tangentialZ * retainedTangent
+        }
+        if (countContact) this.contactCount += 1
+        if (countContact) this.contactMask[vertex] = 1
+        continue
+      }
+
       if (normalVelocity < 0) {
         this.previous[offset] += nx * normalVelocity * 0.91
         this.previous[offset + 1] += ny * normalVelocity * 0.91
         this.previous[offset + 2] += nz * normalVelocity * 0.91
       }
 
-      const friction = mix(0.72, 0.18, finalSweep)
+      const contactSlip =
+        moments.firstLift * clamp((this.profile.strength - 0.72) / 0.65, 0, 1)
+      const friction = mix(mix(0.72, 0.18, finalSweep), 0.24, contactSlip)
       this.previous[offset] = this.positions[offset] - velocityX * (1 - friction)
       this.previous[offset + 2] = this.positions[offset + 2] - velocityZ * (1 - friction)
       if (countContact) this.contactCount += 1
     }
   }
 
-  private applySettlingPose() {
-    const settling =
-      smoothstep(2.22, 2.78, this.releaseTime) *
-      (1 - smoothstep(3.25, 3.5, this.releaseTime))
-    if (settling <= 0) return
-
-    const state = this.getMotionState()
-    const centerGround = this.getGroundHeight(state.averageX, state.averageZ)
-    if (state.averageY - centerGround > this.environment.targetHeight * 1.1) return
-    const scale = this.currentScale()
-    const vertexCount = this.positions.length / 3
-    const blend = settling * 0.032
-
-    for (let vertex = 0; vertex < vertexCount; vertex += 1) {
-      const offset = vertex * 3
-      const row = Math.floor(vertex / (this.segmentsX + 1))
-      const column = vertex % (this.segmentsX + 1)
-      const normalizedX = column / this.segmentsX
-      const normalizedY = row / this.segmentsY
-      const edgeDistance = Math.min(normalizedX, 1 - normalizedX, normalizedY, 1 - normalizedY)
-      const edgeCurl = (1 - smoothstep(0, 0.17, edgeDistance)) * 1.7
-      const targetX = state.averageX + this.rest[offset] * scale.x
-      const targetZ = -this.rest[offset + 1] * scale.y * 0.94
-      const targetY =
-        this.getGroundHeight(targetX, targetZ) +
-        0.42 +
-        edgeCurl * (0.56 + Math.sin(normalizedX * 5.1 + normalizedY * 3.7) * 0.16)
-
-      this.positions[offset] += (targetX - this.positions[offset]) * blend
-      this.positions[offset + 1] += (targetY - this.positions[offset + 1]) * blend
-      this.positions[offset + 2] += (targetZ - this.positions[offset + 2]) * blend
-    }
-  }
 }

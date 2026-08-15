@@ -2,7 +2,7 @@
 
 ## Status
 
-Visual direction approved. [Study O](../../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) is the upstream visual master, and [Study Q](../../design/concepts/under-the-almond-trees-study-q-ground-fermina-v14.png) is the approved final blockout for the passage-interaction stage. The browser blockout has a responsive static frame and a small registered 2.5D layer proof; final responsive framing, passage interaction, typography, and full browser QA remain.
+Visual direction approved. [Study O](../../design/concepts/under-the-almond-trees-study-o-gridlocked-face-v13.png) is the upstream visual master, and [Study Q](../../design/concepts/under-the-almond-trees-study-q-ground-fermina-v14.png) is the approved final blockout for the passage-interaction stage. The browser blockout has a responsive static frame, a registered 2.5D layer proof, and a working book-passage prototype. Its discovery cue, opening, settled-page behavior, release, final responsive framing, and accessibility contract remain under review. See the [passage implementation reference](../PASSAGE_IMPLEMENTATION.md) for current code boundaries and known limitations.
 
 ## Spoiler boundary
 
@@ -185,13 +185,54 @@ Possible changes:
 
 Do not implement the cycle until the static composition works. Omit it if it competes with reading or looks like a filter transition.
 
+### Dappled-light prototype
+
+The bounded prototype in `src/components/DappledLight.tsx` animates illumination only. During its evaluation, the approved canopy-parallax and deforming-plant object layers are deliberately left unmounted so the source painting and every physically depicted object remain still. The passage interaction remains available.
+
+- The effect is confined to the established foreground shade beneath the left canopy. It does not animate the road, curb, arches, façade, doorway, patio, figures, visible foliage, sky, or other bright surfaces.
+- `scripts/build_dapple_receiver_mask.py` intersects an authored foreground-ground scope with Study Q's linear luminance, explicitly excludes Florentino, the book, bench, road, and visible plants, and feathers inward before sunlit boundaries. Its runtime output is `under-the-almond-trees-dapple-receiver-v1.png`.
+- Eight hierarchical branch groups move coherently through lateral sway, slight rotation, shear, stretch, and natural periodic reversals. Each group contains connected branch strokes and leaf silhouettes.
+- A second field of 108 faster sunlight apertures appears and disappears asynchronously; openings translate, rotate, split, merge, sharpen, and soften inside the branch-scale shade.
+- One 20-second mathematically periodic phase drives both scales; integer harmonics preserve position and velocity at the seam.
+- Reduced motion renders phase zero, and rendering stops while the document or scene is not visible.
+- Tunable parameters live in `src/components/dappledLightSettings.ts`: shadow strength, sunlight recovery, motion speed, deformation, edge softness, depth-region scale, and loop duration.
+- `?dapplePhase=0.08` selects a deterministic inspection phase; `?dappleMotion=reduce` exercises the stable fallback; `?dappleDebug=mask` displays the exact receiver mask alone; `?dapple=off` removes the complete dappled-shadow layer for object-motion review.
+
+This proof does not approve re-enabling object motion alongside the lighting. Evaluate their combination separately only after the light behavior is accepted.
+
+### Falling-leaf prototype
+
+`src/components/FallingLeaves.tsx` adds a bounded two-dimensional canvas layer for occasional leaves from six real vegetation regions across the upper half of Study Q: the upper-left framing canopy, canopy around the central sky opening, crown above the house, courtyard tree, doorway vegetation, and the smaller left tree behind Florentino. It does not remove or deform foliage in Study Q, so the approved painting remains the complete first frame and fallback.
+
+- Four small leaf sprites use pointed almond-leaf silhouettes filled with real foliage texture sampled from Study Q, then receive restrained painted-colour shading and veins at their native sprite scale.
+- The six vegetation regions have independent seeded release clocks and staggered openings. Individual regions wait approximately 13–26 seconds, but their clocks interleave, keeping at least one leaf in motion most of the time without repeatedly emitting from one place. A release is normally one leaf, only rarely two, with no synchronized shower and no more than four active leaves in the normal scene.
+- Each leaf has its own depth scale, gravity, terminal speed, aerodynamic drag, broad-wind response, lateral flutter, face-on/edge-on tumble, rotation, and landing point. The shared `AmbientWindField` supplies the air movement but does not prescribe the trajectory.
+- Authored release patches are contained inside visible foliage and keep leaves out of both figures. Source-specific ground lines stop leaves at plausible vegetation, park-ground, or patio boundaries; they settle briefly and dissolve into the painting's existing leaf litter rather than sliding across the flattened ground.
+- Reading mode keeps falling leaves active while lengthening the release interval by up to 22 percent and reducing fall speed, wind response, and tumble speed. The slower descent preserves near-continuous presence without increasing density. Document and scene visibility pause the animation. Reduced motion renders no decorative falling leaves.
+- `?fallingLeavesDebug=dense` accelerates the deterministic release clocks for trajectory inspection. `?fallingLeavesMotion=reduce` exercises the empty stable fallback.
+
+The production cadence is intentionally sparse. Continuous life still belongs to vegetation and light; falling leaves are intermittent evidence of the same calm afternoon air, not a constant particle effect.
+
+### Right-flower butterfly prototype
+
+`src/components/ButterflyLayer.tsx` adds one registered transparent Three.js layer for a single butterfly population around the flowering vegetation at the far right of Study Q. It is deliberately not a scene-wide particle system: there are no crossings, excursions, or spawn regions elsewhere in the painting.
+
+- The normal population is 11 on desktop and 8 below the 760-pixel breakpoint. Every insect is an ordinary `THREE.Group` with a small low-poly body and two independently hinged wings. Geometry and the four materials are shared, while group transforms remain independent; at this population size that is simpler to tune than packing wing transforms into an `InstancedMesh` shader.
+- `src/motion/ButterflyFlock.ts` owns the seeded motion state separately from rendering. It combines local changing targets, occasional approaches to six authored leaf anchors, smooth value-noise drift, short hover pauses, arrival steering, separation, weak shared-wind influence, and slow depth targets. A hard source-space habitat and two soft avoidance ellipses keep all targets and interpolation away from Fermina, the chair, the doorway, and the bare window pier.
+- Depth, scale, colour, flap rate, phase, and amplitude vary per insect. Two registered depth masks, built from the exact alpha of the existing flower-branch cutouts by `scripts/build_butterfly_occluders.py`, let middle and near branches occlude different depth bands without writing any depth over figures or architecture.
+- Reading mode keeps the population visible while smoothly reducing target speed toward 38 percent, noise toward 32 percent, flap frequency toward 78 percent, and canvas opacity to 72 percent. Reduced motion creates no WebGL renderer and leaves the complete Study Q frame unchanged.
+- The renderer requests the low-power GPU, uses a fixed device pixel ratio of 1, and renders the registered 1672 × 941 surface at 0.9 scale on desktop and 0.52 on mobile. It pauses for document or intersection invisibility and disposes frames, textures, geometries, materials, masks, observers, listeners, and the renderer on unmount.
+- All art and motion constants live in `src/components/butterflySettings.ts`. `?butterflySeed=<integer>` selects a deterministic population; `?butterflyCount=<1–24>` overrides density; `?butterflyDebug=regions`, `paths`, `occlusion`, or `all` exposes the habitat, avoidance bounds, leaf anchors, targets, or exact depth masks; and `?butterflyMotion=reduce` exercises the empty stable fallback. Runtime count, mode, seed, pause state, reading blend, average speed, and agent positions are mirrored as `data-*` diagnostics on the canvas.
+
+The visual form, size range, yellow/emissive balance, exact habitat contour, and reading attenuation remain tuning decisions. Change those variables in small groups and inspect the registered scene rather than judging the isolated meshes.
+
 ## Initial hotspot ledger
 
-Actual passages remain `TBD` and will be stored in application data.
+The current book hotspot uses the exact passage data in [`src/content/passages.ts`](../../src/content/passages.ts), passed to both the semantic HTML sheet and the optional canvas quote texture. The other hotspot associations remain `TBD` and should be added only when their passages are supplied.
 
 | Object | Narrative role | Invitation | Activation and reveal | Motion | Touch/mobile fallback |
 | --- | --- | --- | --- | --- | --- |
-| Book on bench | Waiting and imagined language | Page edge or cover shifts slightly | Book opens into a readable passage surface | Weighty page lift, no fluttering spectacle | Tap target expands; passage opens above a dimmed lower foreground |
+| Book on bench | Waiting and imagined language | Noticeable localized light or another scene-native cue; final treatment pending visual approval | Book opens into a readable passage surface | Opening and wind release remain provisional; paper must retain sheet-like rigidity | Tap target expands; passage opens above a dimmed lower foreground |
 | Telegraph wire | Correspondence and distance | Subtle tension or audible hum on focus | A short phrase travels or resolves along an anchored label | One restrained vibration followed by stillness | Tap the wire's visible anchor rather than requiring a thin-line hit |
 | Flower near house or courtyard | Glimpsed presence and memory | Petal or leaf turns toward attention | Botanical label or pressed-paper slip reveals a phrase | Local stem/petal response | Tap opens a composed bottom sheet retaining the flower as visual anchor |
 | Doorway or courtyard opening | Authority, secrecy, and threshold | Light narrows or shadow changes | A longer passage appears within an architectural paper or fabric treatment | Door/light movement kept minimal | Tap opens passage; focus returns to doorway on close |
@@ -201,6 +242,7 @@ Hotspots may change after passages are supplied. Match object to meaning rather 
 
 ## Passage presentation
 
+- The current component, renderer, paper-solver, and wind-field contracts are documented in the [passage implementation reference](../PASSAGE_IMPLEMENTATION.md).
 - Passage text is typeset in HTML and remains selectable.
 - Preserve the supplied text exactly.
 - On desktop, anchor the reveal spatially to its object while maintaining a comfortable reading measure.
@@ -213,7 +255,11 @@ Hotspots may change after passages are supplied. Match object to meaning rather 
 
 - Pointer movement produces small, damped depth changes rather than a floating camera.
 - Foreground responds more than the house; the distant city responds least.
-- Wind affects local plants and cloth asynchronously.
+- A shared calm-afternoon wind signal may coordinate paper and vegetation, but each material responds independently.
+- The lower-right plant deforms nine individually traced upper blades from fixed bases; it must not translate or hinge the plant as one object.
+- Five traced branches in the far-right flowerpot respond more slowly and with less travel; the dense plant base and terracotta pot remain rooted.
+- Its base-scene response has a continuous low-frequency sway rather than random motion separated by still lulls.
+- During reading, those leaves continue moving at a lower amplitude and slower response rather than stopping.
 - Ambient motion settles or pauses when not visible.
 - Interactive motion is reversible and returns cleanly to rest.
 - Fast pointer movements do not cause exaggerated or delayed swings.
@@ -274,16 +320,18 @@ No continuous music is required. The scene must feel complete in silence.
 
 ## Renderer decision
 
-Begin with layered raster elements, CSS perspective/transforms, semantic HTML, and one motion system.
+The static scene begins with layered raster elements, CSS transforms, and semantic HTML. The current passage prototype uses Three.js as a localized progressive enhancement for the page surface, opening, and wind release; the HTML sheet remains the complete fallback. A second bounded proof uses one transparent Three.js layer for nine deforming lower-right blades and five far-right flower branches, over exact stationary remainders and concealed underpainting. The far-right butterflies use another registered transparent Three.js layer because each insect needs independent spatial orientation, banking, hinged wings, and depth-tested plant occlusion. Falling leaves use a separate transparent 2D canvas because they need only a small number of flat painted sprites with independent trajectories, not another WebGL scene.
 
-Evaluate Three.js only if the blockout proves that one of these is essential:
+Keep the current Three.js scope limited to:
 
-- Occlusion or perspective that CSS layers cannot maintain
-- Complex real-time light interaction
-- A camera transition required to enter the courtyard or future road
-- Particle or atmosphere behavior that cannot remain lightweight otherwise
+- Page geometry and material transitions
+- Bounded opening deformation
+- Wind response and road contact during release
+- Decorative quote rendering that mirrors, but never replaces, the semantic HTML
+- Nine independently deforming lower-right blades and five far-right flower branches with fixed bases and complete static fallbacks
+- One 11-desktop/8-mobile butterfly population confined to the far-right flowers, with registered vegetation occlusion and no scene crossings
 
-A shader may have one localized responsibility. The base scene must remain complete without it.
+These localized renderers share one calm ambient wind signal but retain separate material solvers. The butterfly layer uses shared geometry/materials and ordinary groups for only 11 agents, avoiding a custom instancing shader while preserving separate wing transforms; its two depth-only masks and fixed-DPR canvas remain bounded to the source registration. The falling-leaf canvas is the bounded 2D particle proof: at most four normal-scene objects, capped at 24 updates per second on a three-quarter-resolution transparent surface, paused offscreen, absent under reduced motion, and removable without changing the source painting. Any scene-wide renderer, camera transition, complex lighting system, denser particles, or shader requires a separate bounded proof. The base scene and passage must remain complete without canvas or WebGL.
 
 ## Approved reference and remaining deliverables
 
@@ -291,8 +339,8 @@ A shader may have one localized responsibility. The base scene must remain compl
 - Static browser composition using the approved Study Q blockout, with Study O retained as the upstream source master
 - Registered foreground/midground/background separation proof with restrained pointer depth and reduced-motion settling
 - Authored mobile crop retaining the bench-to-doorway relationship
-- One representative interactive-object state
-- One passage-surface and typography study using exact supplied text
+- Approved book-discovery cue and passage opening/settled/release states
+- Final passage-surface and typography treatment using exact supplied text
 
 ## Acceptance criteria for the rough vertical slice
 

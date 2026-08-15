@@ -65,11 +65,14 @@ button {
   background: #17180f;
 }
 
-.scene--reading-open {
+.scene--reading-active {
   overflow: clip;
 }
 
 .scene__art,
+.scene__dappled-light,
+.scene__falling-leaves,
+.scene__butterflies,
 .scene__underpaint,
 .scene__foreground-underpaint,
 .scene__canopy,
@@ -83,6 +86,100 @@ button {
   object-position: 50% 50%;
   user-select: none;
   -webkit-user-drag: none;
+}
+
+.scene__dappled-light {
+  aspect-ratio: 1672 / 941;
+  pointer-events: none;
+}
+
+.scene__falling-leaves {
+  aspect-ratio: 1672 / 941;
+  pointer-events: none;
+}
+
+.scene__butterflies {
+  aspect-ratio: 1672 / 941;
+  display: block;
+  pointer-events: none;
+  transition: opacity 1.8s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.scene--reading-active .scene__butterflies {
+  opacity: var(--butterfly-reading-opacity, 0.62);
+}
+
+.scene__dappled-shadow,
+.scene__dappled-sunlight,
+.scene__dappled-mask-debug {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  pointer-events: none;
+}
+
+.scene__dappled-shadow {
+  mix-blend-mode: multiply;
+}
+
+.scene__dappled-sunlight {
+  mix-blend-mode: screen;
+}
+
+.scene__dappled-mask-debug {
+  display: none;
+  max-width: none;
+  object-fit: cover;
+  object-position: 50% 50%;
+}
+
+.scene__dappled-light[data-debug='mask'] {
+  z-index: 12;
+  background: #000;
+}
+
+.scene__dappled-light[data-debug='mask'] .scene__dappled-shadow,
+.scene__dappled-light[data-debug='mask'] .scene__dappled-sunlight {
+  display: none;
+}
+
+.scene__dappled-light[data-debug='mask'] .scene__dappled-mask-debug {
+  display: block;
+}
+
+.scene__foreground {
+  aspect-ratio: 1672 / 941;
+}
+
+.scene__foreground-fallback,
+.scene__foreground-flower-underpaint,
+.scene__foreground-static,
+.scene__foreground-leaves {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.scene__foreground-fallback,
+.scene__foreground-flower-underpaint,
+.scene__foreground-static {
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.scene__foreground--loading .scene__foreground-fallback,
+.scene__foreground--fallback .scene__foreground-fallback,
+.scene__foreground--live .scene__foreground-flower-underpaint,
+.scene__foreground--live .scene__foreground-static,
+.scene__foreground--live .scene__foreground-leaves {
+  opacity: 1;
 }
 
 .scene__layers {
@@ -103,7 +200,122 @@ button {
   background:
     radial-gradient(ellipse 38% 54% at 51% 66%, rgba(255, 244, 206, 0.025), transparent 66%),
     rgba(20, 17, 9, 0.055);
+  opacity: 0;
   pointer-events: none;
+  transition: opacity 2.7s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.scene--reading-active .scene__reading-veil {
+  opacity: 1;
+}
+
+.book-passage-target {
+  --cue-page-opacity: 0.29;
+  --cue-spill-opacity: 0.605;
+  position: absolute;
+  z-index: 4;
+  top: 64%;
+  left: 18%;
+  width: 8%;
+  min-width: 82px;
+  height: 13%;
+  min-height: 72px;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.book-passage-target--available {
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.book-cue,
+.book-cue__spill,
+.book-cue__page {
+  position: absolute;
+  pointer-events: none;
+  transition:
+    opacity 320ms ease,
+    transform 520ms cubic-bezier(0.22, 0.7, 0.28, 1),
+    filter 320ms ease;
+}
+
+.book-cue {
+  inset: 0;
+  overflow: visible;
+}
+
+.book-cue__spill {
+  top: 12%;
+  left: 5%;
+  width: 80%;
+  height: 72%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(255, 244, 204, 0.72) 0 8%, rgba(250, 222, 158, 0.4) 32%, transparent 73%);
+  filter: blur(10px);
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: scale(0.86);
+}
+
+.book-cue__page {
+  top: 34%;
+  left: 31%;
+  width: 34%;
+  height: 28%;
+  background: radial-gradient(ellipse at 54% 48%, rgba(255, 253, 235, 0.94) 0 12%, rgba(255, 231, 180, 0.54) 48%, transparent 82%);
+  clip-path: polygon(2% 18%, 91% 0, 100% 83%, 18% 100%);
+  filter:
+    drop-shadow(0 0 2px rgba(255, 246, 214, 0.92))
+    drop-shadow(0 0 7px rgba(244, 201, 120, 0.56));
+  mix-blend-mode: screen;
+  opacity: 0;
+  transform: rotate(4deg) scale(0.94);
+  transform-origin: 16% 82%;
+}
+
+.book-passage-target--nearby .book-cue__spill,
+.book-passage-target:focus-visible .book-cue__spill {
+  animation: book-spill-pulse 2.8s ease-in-out infinite;
+}
+
+.book-passage-target--nearby .book-cue__page,
+.book-passage-target:focus-visible .book-cue__page {
+  animation: book-page-pulse 2.8s ease-in-out infinite;
+}
+
+.book-passage-target:focus-visible {
+  outline: 0;
+}
+
+@keyframes book-page-pulse {
+  0%,
+  100% {
+    opacity: calc(var(--cue-page-opacity) * 0.28);
+    transform: rotate(4deg) scale(0.94);
+  }
+
+  42% {
+    opacity: var(--cue-page-opacity);
+    transform: rotate(4deg) scale(1.02);
+  }
+}
+
+@keyframes book-spill-pulse {
+  0%,
+  100% {
+    opacity: calc(var(--cue-spill-opacity) * 0.2);
+    transform: scale(0.86);
+  }
+
+  42% {
+    opacity: var(--cue-spill-opacity);
+    transform: scale(1.04);
+  }
 }
 
 .reading-preview {
@@ -164,6 +376,7 @@ button {
   transition: opacity 120ms ease;
 }
 
+.reading-leaves--opening::before,
 .reading-leaves--mesh-ready::before {
   opacity: 0;
 }
@@ -229,6 +442,7 @@ button {
   width: 100%;
   height: 100%;
   margin: 0;
+  transition: opacity 460ms ease;
 }
 
 .reading-sheet__passage p {
@@ -236,18 +450,27 @@ button {
   text-shadow: 0 1px 0 rgba(255, 249, 226, 0.34);
 }
 
+.reading-sheet__word {
+  opacity: 1;
+}
+
+.reading-leaves--word-reveal .reading-sheet__word {
+  animation: passage-word-in 1440ms ease-out both;
+  animation-delay: calc(var(--word-index) * 128ms);
+}
+
+@keyframes passage-word-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 .reading-leaves--mesh-ready .reading-sheet__fibers {
   opacity: 0;
-}
-
-.reading-leaves--mesh-ready .reading-sheet__passage p {
-  color: transparent;
-  text-shadow: none;
-}
-
-.reading-leaves--mesh-ready .reading-sheet__passage p::selection {
-  color: #302519;
-  background: rgba(246, 223, 167, 0.78);
 }
 
 .reading-sheet--aphorism .reading-sheet__passage {
@@ -296,7 +519,7 @@ button {
   align-items: center;
   gap: 12px;
   transform: translateX(-50%);
-  transition: opacity 160ms ease;
+  transition: opacity 460ms ease;
 }
 
 .reading-leaves--prose .leaf-switcher {
@@ -360,7 +583,8 @@ button {
 }
 
 .page-release,
-.page-replay {
+.page-replay,
+.opening-replay {
   color: rgba(255, 244, 211, 0.94);
   background: rgba(35, 28, 17, 0.78);
   border: 1px solid rgba(244, 226, 181, 0.46);
@@ -381,7 +605,7 @@ button {
   bottom: 54px;
   left: 36px;
   padding: 7px 12px 8px;
-  transition: opacity 160ms ease;
+  transition: opacity 460ms ease;
 }
 
 .reading-leaves--prose .page-release {
@@ -389,28 +613,55 @@ button {
 }
 
 .page-release:focus-visible,
-.page-replay:focus-visible {
+.page-replay:focus-visible,
+.opening-replay:focus-visible {
   outline: 1px solid rgba(241, 226, 188, 0.8);
   outline-offset: 3px;
 }
 
+.reading-leaves--opening .reading-sheet__fibers,
+.reading-leaves--opening .reading-sheet__passage,
+.reading-leaves--opening .leaf-switcher,
+.reading-leaves--opening .page-release,
 .reading-leaves--closing .leaf-switcher,
-.reading-leaves--closing .page-release {
+.reading-leaves--closing .page-release,
+.reading-leaves--closing .reading-sheet__passage {
   opacity: 0;
   pointer-events: none;
 }
 
+.reading-leaves--opening,
 .reading-leaves--closing {
   pointer-events: none;
 }
 
-.page-replay {
+.reading-leaves--closing .reading-sheet__passage {
+  transition: none;
+}
+
+.opening-replay {
   position: absolute;
   top: 72.5%;
   left: 24.8%;
   z-index: 4;
   padding: 8px 13px 9px;
   pointer-events: auto;
+}
+
+.page-replay-group {
+  position: absolute;
+  z-index: 4;
+  top: 72.5%;
+  left: 24.8%;
+  display: flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.page-replay-group .page-replay,
+.page-replay-group .opening-replay {
+  position: static;
+  padding: 8px 13px 9px;
 }
 
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
@@ -424,20 +675,41 @@ button {
     will-change: transform;
   }
 
-  .scene--reading-open .scene__canopy,
-  .scene--reading-open .scene__foreground {
+  .scene--reading-active .scene__canopy,
+  .scene--reading-active .scene__foreground {
     transform: translate3d(0, 0, 0);
     will-change: auto;
   }
 }
 
+@media (min-aspect-ratio: 1672 / 941) {
+  .book-passage-target {
+    top: calc(50% + 7.879vw);
+    height: 7.316vw;
+  }
+}
+
 @media (min-aspect-ratio: 2 / 1) {
   .scene__art,
+  .scene__dappled-light,
+  .scene__falling-leaves,
+  .scene__butterflies,
   .scene__underpaint,
   .scene__foreground-underpaint,
   .scene__canopy,
   .scene__foreground {
     object-position: 50% 47%;
+  }
+
+  .scene__foreground-fallback,
+  .scene__foreground-flower-underpaint,
+  .scene__foreground-static,
+  .scene__foreground-leaves {
+    object-position: 50% 47%;
+  }
+
+  .book-passage-target {
+    top: calc(47% + 9.568vw);
   }
 }
 
@@ -451,6 +723,9 @@ button {
   }
 
   .scene__art,
+  .scene__dappled-light,
+  .scene__falling-leaves,
+  .scene__butterflies,
   .scene__underpaint,
   .scene__foreground-underpaint,
   .scene__canopy,
@@ -469,6 +744,9 @@ button {
 
 @media (orientation: portrait) and (min-width: 700px) {
   .scene__art,
+  .scene__dappled-light,
+  .scene__falling-leaves,
+  .scene__butterflies,
   .scene__underpaint,
   .scene__foreground-underpaint,
   .scene__canopy,
@@ -525,6 +803,27 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .reading-leaves--word-reveal .reading-sheet__word {
+    animation: none;
+  }
+
+  .book-cue__spill,
+  .book-cue__page {
+    animation: none;
+  }
+
+  .book-passage-target--nearby .book-cue__spill,
+  .book-passage-target:focus-visible .book-cue__spill {
+    opacity: calc(var(--cue-spill-opacity) * 0.54);
+    transform: scale(0.96);
+  }
+
+  .book-passage-target--nearby .book-cue__page,
+  .book-passage-target:focus-visible .book-cue__page {
+    opacity: calc(var(--cue-page-opacity) * 0.68);
+    transform: rotate(4deg) scale(1);
+  }
+
   .reading-leaves--closing {
     opacity: 0;
     transform: translate(-50%, -38%) scale(0.17, 0.26);

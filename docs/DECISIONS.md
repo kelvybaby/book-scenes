@@ -151,3 +151,53 @@ This file records decisions that affect the project beyond one implementation de
 **Decision:** Limit pointer-driven translation to the registered upper foreground canopy and the isolated upper silhouette of the lower-right plant cluster. Keep the road, path, soil, architecture, figures, vegetation rooted around Fermina's house, and shrubs behind Florentino static. Treat wind and changing light as separate, localized systems rather than additional translating depth planes.
 
 **Consequences:** The current CSS depth stack is sufficient for the prototype. Do not add another sliding plane unless a bounded browser proof demonstrates a clean silhouette, concealed underpainting, exact resting composite, and a visible improvement when combined with passage, wind, and lighting behavior.
+
+## 2026-08-08 — Limit Three.js to the passage page surface
+
+**Status:** Accepted architectural boundary for the current prototype; visual behavior remains provisional
+
+**Context:** The static scene and selective CSS layers are sufficient for the tableau and pointer depth. A bounded prototype showed that a localized mesh is useful for page deformation, material transition, wind response, and road contact, while semantic HTML remains better for readable passage content and fallback behavior.
+
+**Decision:** Use Three.js only inside the passage interaction as a progressive page-surface enhancement. Keep the exact passage in semantic HTML, keep the scene layers and pointer parallax in CSS, and keep page physics and wind sampling separate from the renderer in `PaperSheet.ts` and `WindField.ts`.
+
+**Consequences:** The passage may use a shared page mesh while retaining a complete no-WebGL fallback. The discovery cue, opening, settled state, rigidity model, landing, and release path still require visual approval. The renderer must cap pixel ratio, pause when hidden, observe layout changes, and dispose all resources on unmount. Do not expand Three.js into a scene-wide renderer without a new bounded proof and decision.
+
+## 2026-08-09 — Permit a localized deforming-leaf proof
+
+**Status:** Experimental bounded proof; supersedes the 2026-08-08 Three.js boundary only for the lower-right plant
+
+**Context:** Rotating one isolated foreground region made the plant behave like a hinged card. The requested effect is persistent, relaxed movement within specific leaves while their bases and the surrounding painted background remain rooted.
+
+**Decision:** Permit one transparent Three.js layer containing three separately traced, subdivided leaf meshes over an exact stationary remainder of the approved foreground. Drive the leaves and passage paper from the same calm scene-scale wind signal, but give each material its own response, damping, and limits. The leaf responder adds a slow continuous baseline sway so the base scene has no authored still interval. During reading, leaf motion continues at lower amplitude and speed. Retain the original foreground as the no-WebGL and reduced-motion fallback.
+
+**Consequences:** This is not approval for a scene-wide renderer or simulated plant physics. The source partition must reconstruct the approved foreground exactly, and each additional plant requires its own traced assets, concealed overlaps, response tuning, and rendered proof. The current lower-right result remains subject to reader approval before the method expands elsewhere.
+
+## 2026-08-09 — Expand the localized plant rig to the far-right flowers
+
+**Status:** Accepted for the current prototype; supersedes the three-leaf scope of the earlier 2026-08-09 proof
+
+**Context:** The reader approved the corrected three-leaf motion and requested a meticulous expansion within the lower cluster plus wind response in the far-right flowering pot. The flowers are flattened into Study Q and therefore require concealed background repair to move without leaving duplicates.
+
+**Decision:** Use nine narrow, exact-pixel blade meshes in the lower cluster and five separately phased flower-branch meshes at the far right. Keep both dense plant bases and the terracotta pot rooted. Flower stems bend less and respond more slowly than the lower blades. Use generated pixels only inside the exact flower pixels removed from the flattened master; restore every visible resting pixel with Study Q cutouts and verify a zero-difference source reconstruction.
+
+**Consequences:** The localized plant canvas now carries fourteen lightweight meshes but remains separate from the scene camera and passage renderer. The original Study Q frame and registered foreground remain the reduced-motion and no-WebGL fallbacks. Further vegetation expansion still requires its own traced partition, clean plate, material response, and rendered edge proof.
+
+## 2026-08-12 — Add sparse falling leaves as a bounded 2D particle proof
+
+**Status:** Experimental bounded proof; visual cadence remains subject to reader approval
+
+**Context:** The reader first requested falling leaves from the doorway tree and the left tree behind Florentino, then clarified that sources should vary across real vegetation in the upper half of the scene. These objects travel through open image space and do not need the deformable geometry used by paper and rooted vegetation.
+
+**Decision:** Render no more than four normal-scene falling leaves on a registered transparent 2D canvas. Build their small sprites from Study Q foliage texture inside authored almond-leaf silhouettes. Distribute six contained emission regions across actual upper-half foliage—the upper-left frame, central canopy, house crown, courtyard tree, doorway tree, and smaller left tree. Give every region an independent seeded clock and stagger their openings so the scene usually holds a descending leaf without repeatedly emitting from the same location. Emit one leaf normally and only rarely a pair. Use a lightweight per-leaf solver for gravity, terminal velocity, drag, lateral flutter, depth scale, face-on/edge-on tumble, rotation, and source-specific ground contact. Sample the existing calm `AmbientWindField` for shared air movement while retaining individual inertia. Keep motion during reading at reduced cadence and energy; render no falling leaves under reduced motion.
+
+**Consequences:** The approved painting remains untouched and complete without canvas. The layer pauses when hidden and caps normal density and update rate. The later traveling ground gust may reuse landed-leaf visual language, but it should be a separate rare event and should not turn these sparse releases into a constant particle shower.
+
+## 2026-08-12 — Permit a butterfly population only around the far-right flowers
+
+**Status:** Experimental bounded proof; form and motion tuning remain subject to reader approval
+
+**Context:** The supplied video establishes a restrained feeling, scale range, and local density for small yellow butterflies, but its environment is not an implementation template. This scene needs independent hovering, depth, and rapid wing articulation around one existing flowering plant while avoiding Fermina and the architecture. Eleven agents are too few to justify scene-wide particle infrastructure, and sprites would lose the hinged silhouette and banking that make them readable at this distance.
+
+**Decision:** Use one registered transparent Three.js layer containing 11 desktop or 8 mobile butterfly groups. Share one body geometry, two wing geometries, and a small material set, but keep each group and wing transform independent rather than using `InstancedMesh`. Confine every initial position and changing target to one authored source-space habitat around the far-right flowering pot; do not create crossings, excursions, or other populations. Drive local steering from seeded changing targets, leaf approaches, hover pauses, smooth drift, separation, depth variation, and a weak sample of `AmbientWindField`. Use exact alpha from the already registered flower-branch cutouts as two depth-only vegetation masks. Keep the population visible but slower, quieter, and less opaque while reading. Render none under reduced motion.
+
+**Consequences:** The effect remains removable without changing Study Q, and the motion solver remains independent of Three.js. The renderer adds roughly 35 normal render objects at the desktop maximum (three meshes per insect plus two depth masks), uses shared resources and a fixed DPR of 1, lowers its registered buffer scale on mobile, pauses when hidden, and cleans up on unmount. Settings and query diagnostics make population, habitat, paths, masks, seed, and fallback observable. Any population outside the far-right flowers, noticeable composition crossing, collision mesh, scene-wide renderer, or GPU-instanced version requires a new visual need and decision.

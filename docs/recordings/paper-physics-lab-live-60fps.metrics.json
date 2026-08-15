@@ -1,0 +1,75 @@
+{
+  "seed": 271828,
+  "measurementWindowSeconds": 7,
+  "baselineBeforeStabilization": {
+    "renderSampleRateHz": 60,
+    "broadEstimateHz": 13.1,
+    "cornerEstimateHz": 13.94,
+    "maximumDisplacementPercent": 36.4,
+    "maximumFrameDisplacementPercent": 29.42
+  },
+  "latticeOnlyBeforeStabilization": {
+    "broadEstimateHz": 9.31,
+    "cornerEstimateHz": 9.29,
+    "maximumDisplacementPercent": 26.4,
+    "maximumFrameDisplacementPercent": 28.61
+  },
+  "latticeOnlyAfterProjectionHistoryFix": {
+    "broadEstimateHz": 0,
+    "cornerEstimateHz": 0.14,
+    "maximumDisplacementPercent": 3.8,
+    "maximumFrameDisplacementPercent": 0.16
+  },
+  "default60Hz": {
+    "renderSampleRateHz": 60,
+    "physicsDurationSeconds": 7,
+    "deformationDurationSeconds": 0.52,
+    "broadEstimateHz": 0.21,
+    "aggregateCornerEstimateHz": 0.3,
+    "maximumDisplacementPercent": 10.1,
+    "maximumFrameDisplacementPercent": 0.37,
+    "maximumWindTargetFrameDelta": 0.038,
+    "maximumAngularBiasFrameDelta": 0.005,
+    "maximumCurlTargetFrameDeltaDegrees": 0.21,
+    "maximumFlutterAmplitudeFrameDeltaPercent": 0.013
+  },
+  "componentIsolation": {
+    "broadBend": {
+      "estimatedFrequencyHz": 0.21,
+      "maximumDisplacementPercent": 5.5,
+      "maximumFrameDisplacementPercent": 0.3
+    },
+    "curl": {
+      "maximumDisplacementPercent": 6.9,
+      "maximumFrameDisplacementPercent": 0.14
+    },
+    "cornerFlutter": {
+      "estimatedFrequencyHz": 1.97,
+      "maximumDisplacementPercent": 0.9,
+      "maximumFrameDisplacementPercent": 0.16
+    }
+  },
+  "integrationComparison": {
+    "60Hz": {
+      "physicsDurationSeconds": 6.97,
+      "broadEstimateHz": 0.22,
+      "maximumDisplacementPercent": 10.1,
+      "maximumFrameDisplacementPercent": 0.36
+    },
+    "120Hz": {
+      "physicsDurationSeconds": 6.99,
+      "broadEstimateHz": 0.21,
+      "maximumDisplacementPercent": 10.1,
+      "maximumFrameDisplacementPercent": 0.36
+    }
+  },
+  "recording": {
+    "file": "paper-physics-lab-live-60fps.webm",
+    "width": 1280,
+    "height": 760,
+    "frameRateHz": 60,
+    "packetCount": 418,
+    "firstPacketTimeSeconds": 0,
+    "lastPacketTimeSeconds": 6.962
+  }
+}
