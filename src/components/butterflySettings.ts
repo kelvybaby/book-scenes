@@ -45,37 +45,50 @@ export type ButterflySettings = {
   wingSpan: number
   wingLength: number
   bodyLength: number
+  bodyRadius: number
   flapFrequency: ButterflyRange
   flapAmplitude: ButterflyRange
   flapOpenAngle: number
+  pauseFlapScale: number
+  dartFlapScale: number
+  bodyBobAmount: number
   cruiseSpeed: ButterflyRange
-  hoverSpeed: ButterflyRange
+  speedControlInterval: ButterflyRange
+  slowSpeedScale: ButterflyRange
+  activeSpeedScale: ButterflyRange
+  burstSpeedScale: ButterflyRange
+  slowChance: number
+  burstChance: number
+  speedResponse: number
+  turnRate: ButterflyRange
+  turnControlInterval: ButterflyRange
+  turnPersistence: number
+  turnRateResponse: number
+  homeRadiusX: ButterflyRange
+  homeRadiusY: ButterflyRange
+  homeTurnStrength: number
+  homeReturnStrength: number
+  flutterSpeed: ButterflyRange
+  flutterControlInterval: ButterflyRange
+  flutterResponse: number
+  velocityResponse: number
+  depthControlInterval: ButterflyRange
+  depthResponse: number
   maximumAcceleration: number
-  steeringResponse: number
-  turnResponse: number
+  presentationTurnResponse: number
+  maximumPresentationTurnRate: number
   maximumBank: number
-  arrivalRadius: number
-  slowdownRadius: number
-  localTravel: ButterflyRange
-  longLocalTravelChance: number
-  anchorApproachChance: number
-  hoverDuration: ButterflyRange
-  targetDuration: ButterflyRange
-  noiseStrength: ButterflyRange
-  noiseFrequency: ButterflyRange
   boundaryStrength: number
   avoidanceStrength: number
   separationRadius: number
   separationStrength: number
   depthSpeed: number
   readingSpeedScale: number
-  readingNoiseScale: number
+  readingJitterScale: number
   readingFlapScale: number
   readingOpacity: number
   windStrength: number
   wingColors: readonly [far: number, middle: number, near: number]
-  wingEmissive: number
-  wingEmissiveIntensity: number
   bodyColor: number
   occluders: readonly ButterflyOccluder[]
 }
@@ -89,17 +102,17 @@ export const DEFAULT_BUTTERFLY_SETTINGS: ButterflySettings = {
   desktopCount: 11,
   mobileCount: 8,
   seed: 0x42555454,
-  // A single bounded habitat around the far-right flowering pot. The hard
-  // limits keep every target outside Fermina, the doorway, and the wall mass.
+  // A single bounded habitat around the far-right flowering canopy. The hard
+  // limits keep all flight outside Fermina, the doorway, and the wall mass.
   activity: {
-    x: 1590,
-    y: 606,
-    radiusX: 103,
-    radiusY: 154,
-    minimumX: 1498,
+    x: 1604,
+    y: 604,
+    radiusX: 94,
+    radiusY: 99,
+    minimumX: 1512,
     maximumX: 1668,
-    minimumY: 454,
-    maximumY: 742,
+    minimumY: 505,
+    maximumY: 703,
   },
   leafAnchors: [
     { x: 1583, y: 532 },
@@ -118,42 +131,61 @@ export const DEFAULT_BUTTERFLY_SETTINGS: ButterflySettings = {
     { x: 1512, y: 428, radiusX: 68, radiusY: 94, strength: 0.9 },
   ],
   depth: [-0.32, 1.14],
-  scale: [0.64, 1.3],
-  wingSpan: 6.4,
-  wingLength: 5.2,
-  bodyLength: 4.2,
-  flapFrequency: [6.4, 9.4],
-  flapAmplitude: [1.02, 1.42],
-  flapOpenAngle: 0.035,
-  cruiseSpeed: [11, 24],
-  hoverSpeed: [2.4, 6.2],
-  maximumAcceleration: 46,
-  steeringResponse: 2.7,
-  turnResponse: 6.4,
-  maximumBank: 0.24,
-  arrivalRadius: 8,
-  slowdownRadius: 45,
-  localTravel: [28, 76],
-  longLocalTravelChance: 0.16,
-  anchorApproachChance: 0.36,
-  hoverDuration: [0.65, 2.8],
-  targetDuration: [3.8, 8.6],
-  noiseStrength: [3.2, 8.4],
-  noiseFrequency: [0.12, 0.29],
-  boundaryStrength: 38,
-  avoidanceStrength: 52,
+  // Broad wings and a smaller body preserve the paired V/M silhouette seen in
+  // the reference, while the depth-driven scale still leaves several specks.
+  scale: [0.91, 2.24],
+  wingSpan: 3.4,
+  wingLength: 5.8,
+  bodyLength: 3.4,
+  bodyRadius: 0.3,
+  flapFrequency: [9.4, 13.8],
+  flapAmplitude: [0.72, 1],
+  flapOpenAngle: 0.12,
+  pauseFlapScale: 0.55,
+  dartFlapScale: 1.2,
+  bodyBobAmount: 1.15,
+  // The flight solver continuously varies speed and curvature around a local
+  // home. These controls create compact hooks and brief relaxations without
+  // choosing destination points or switching through visible behavior states.
+  cruiseSpeed: [52, 82],
+  speedControlInterval: [0.03, 0.12],
+  slowSpeedScale: [0.02, 0.12],
+  activeSpeedScale: [0.65, 1.12],
+  burstSpeedScale: [1.65, 2.45],
+  slowChance: 0.24,
+  burstChance: 0.38,
+  speedResponse: 16,
+  turnRate: [2.5, 9],
+  turnControlInterval: [0.025, 0.1],
+  turnPersistence: 0.56,
+  turnRateResponse: 24,
+  homeRadiusX: [18, 28],
+  homeRadiusY: [14, 24],
+  homeTurnStrength: 20,
+  homeReturnStrength: 1400,
+  flutterSpeed: [5, 13],
+  flutterControlInterval: [0.015, 0.055],
+  flutterResponse: 36,
+  velocityResponse: 28,
+  depthControlInterval: [0.2, 0.64],
+  depthResponse: 4.6,
+  maximumAcceleration: 1000,
+  presentationTurnResponse: 6,
+  maximumPresentationTurnRate: 2.6,
+  maximumBank: 0.13,
+  boundaryStrength: 300,
+  avoidanceStrength: 300,
   separationRadius: 19,
-  separationStrength: 20,
-  depthSpeed: 0.24,
+  separationStrength: 34,
+  depthSpeed: 0.42,
   readingSpeedScale: 0.38,
-  readingNoiseScale: 0.32,
+  readingJitterScale: 0.42,
   readingFlapScale: 0.78,
   readingOpacity: 0.72,
-  windStrength: 1.8,
-  wingColors: [0xc39f35, 0xdfb63a, 0xf0c641],
-  wingEmissive: 0x4d3a0d,
-  wingEmissiveIntensity: 0.42,
-  bodyColor: 0x3b3119,
+  windStrength: 0.72,
+  // These are painted, light-independent colours rather than emissive VFX.
+  wingColors: [0xe8c96b, 0xf5dc7a, 0xffe78f],
+  bodyColor: 0x765522,
   occluders: [
     {
       id: 'mid-foliage',

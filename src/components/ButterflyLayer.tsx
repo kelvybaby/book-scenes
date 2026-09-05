@@ -6,6 +6,11 @@ import {
   DEFAULT_BUTTERFLY_SETTINGS,
   type ButterflySettings,
 } from './butterflySettings'
+import {
+  createButterflyGeometrySet,
+  createButterflyModelView,
+  type ButterflyGeometrySet,
+} from './butterflyModel'
 
 type ButterflyLayerProps = {
   readingActive: boolean
@@ -19,6 +24,8 @@ type ButterflyView = {
   rightWing: THREE.Group
   heading: number
   bank: number
+  pitchBias: number
+  yawBias: number
 }
 
 type DebugLayer = {
@@ -30,12 +37,24 @@ type DebugLayer = {
 
 const TAU = Math.PI * 2
 const SIMULATION_STEP = 1 / 60
+const MOVING_FLOWER_OCCLUDER_DEPTH = 0.46
+const MOVING_FLOWER_OCCLUDER_UPDATE_INTERVAL = 1 / 20
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(Math.max(value, minimum), maximum)
 
 const mix = (minimum: number, maximum: number, amount: number) =>
   minimum + (maximum - minimum) * amount
+
+// Use the equivalent body axis whose head remains screen-up, while retaining
+// the prior protection against 180° travel reversals.
+const shortestAxisAngle = (angle: number) =>
+  ((angle + Math.PI * 0.5) % Math.PI + Math.PI) % Math.PI - Math.PI * 0.5
+
+const upperFacingAngle = (angle: number) => {
+  const axisAngle = shortestAxisAngle(angle)
+  return axisAngle > 0 ? axisAngle - Math.PI : axisAngle
+}
 
 const shortestAngle = (angle: number) =>
   ((angle + Math.PI) % TAU + TAU) % TAU - Math.PI
@@ -53,34 +72,6 @@ function debugMode() {
 
 function isReducedMotionForced() {
   return new URLSearchParams(window.location.search).get('butterflyMotion') === 'reduce'
-}
-
-function createWingGeometry(settings: ButterflySettings, side: -1 | 1) {
-  const span = settings.wingSpan * side
-  const length = settings.wingLength
-  const positions = new Float32Array([
-    0,
-    0,
-    0,
-    length * 0.48,
-    span * 0.18,
-    0,
-    length * 0.28,
-    span,
-    0,
-    -length * 0.36,
-    span * 0.82,
-    0,
-    -length * 0.42,
-    span * 0.24,
-    0,
-  ])
-  const geometry = new THREE.BufferGeometry()
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-  geometry.setIndex([0, 1, 2, 0, 2, 3, 0, 3, 4])
-  geometry.computeVertexNormals()
-  geometry.computeBoundingSphere()
-  return geometry
 }
 
 function ellipseGeometry(
@@ -247,9 +238,12 @@ export function ButterflyLayer({
     let scene: THREE.Scene | null = null
     let camera: THREE.OrthographicCamera | null = null
     let flock: ButterflyFlock | null = null
+    let butterflyGeometry: ButterflyGeometrySet | null = null
     let views: ButterflyView[] = []
     let debugLayer: DebugLayer | null = null
     let occluderGeometry: THREE.PlaneGeometry | null = null
+    let movingFlowerOccluder: THREE.CanvasTexture | null = null
+    let movingFlowerOccluderElapsed = 0
     const occluderMaterials: THREE.MeshBasicMaterial[] = []
     const occluderTextures: THREE.Texture[] = []
     const sharedGeometries: THREE.BufferGeometry[] = []
@@ -304,37 +298,31 @@ export function ButterflyLayer({
     }
 
     const rebuildPopulation = () => {
-      if (!scene || sharedGeometries.length < 3 || sharedMaterials.length < 4) return
+      if (!scene || !butterflyGeometry || sharedMaterials.length < 7) return
       for (const view of views) view.root.removeFromParent()
       views = []
       disposeDebugLayer()
 
       const count = countForViewport()
       flock = new ButterflyFlock(settings, wind, count, seed)
-      const [bodyGeometry, leftWingGeometry, rightWingGeometry] = sharedGeometries
-      const [bodyMaterial, farWingMaterial, middleWingMaterial, nearWingMaterial] =
-        sharedMaterials
-      const wingMaterials = [
-        farWingMaterial,
-        middleWingMaterial,
-        nearWingMaterial,
-      ]
+      const bodyMaterial = sharedMaterials[0]
 
       for (const agent of flock.agents) {
-        const root = new THREE.Group()
-        const body = new THREE.Mesh(bodyGeometry, bodyMaterial)
-        const leftWing = new THREE.Group()
-        const rightWing = new THREE.Group()
-        leftWing.add(
-          new THREE.Mesh(leftWingGeometry, wingMaterials[agent.depthBand]),
-        )
-        rightWing.add(
-          new THREE.Mesh(rightWingGeometry, wingMaterials[agent.depthBand]),
-        )
-        root.add(body, leftWing, rightWing)
-        root.scale.setScalar(agent.scale)
-        scene.add(root)
-        views.push({ root, leftWing, rightWing, heading: 0, bank: 0 })
+        const materialOffset = 1 + agent.depthBand * 2
+        const model = createButterflyModelView(butterflyGeometry, {
+          body: bodyMaterial,
+          forewing: sharedMaterials[materialOffset],
+          hindwing: sharedMaterials[materialOffset + 1],
+        })
+        model.root.scale.setScalar(agent.scale)
+        scene.add(model.root)
+        views.push({
+          ...model,
+          heading: upperFacingAngle(agent.travelHeading),
+          bank: 0,
+          pitchBias: Math.sin(agent.id * 2.17 + agent.bobPhase) * 0.28,
+          yawBias: Math.cos(agent.id * 1.63 + agent.flapPhase) * 0.22,
+        })
       }
 
       debugLayer = createDebugLayer(settings, debug, count)
@@ -362,47 +350,81 @@ export function ButterflyLayer({
         accumulatedTime -= SIMULATION_STEP
       }
 
+      if (movingFlowerOccluder) {
+        movingFlowerOccluderElapsed += elapsed
+        if (
+          movingFlowerOccluderElapsed >=
+          MOVING_FLOWER_OCCLUDER_UPDATE_INTERVAL
+        ) {
+          movingFlowerOccluder.needsUpdate = true
+          movingFlowerOccluderElapsed = 0
+        }
+      }
+
       let totalSpeed = 0
+      const behaviorCounts: Record<ButterflyAgent['behavior'], number> = {
+        hover: 0,
+        flutter: 0,
+        dart: 0,
+        inspect: 0,
+        wander: 0,
+      }
       for (let index = 0; index < flock.agents.length; index += 1) {
         const agent = flock.agents[index]
         const view = views[index]
+        behaviorCounts[agent.behavior] += 1
         const speed = Math.hypot(agent.velocity.x, agent.velocity.y)
         totalSpeed += speed
-        if (speed > 0.16) {
-          const targetHeading = Math.atan2(agent.velocity.y, agent.velocity.x)
-          const headingDelta = shortestAngle(targetHeading - view.heading)
-          view.heading +=
-            headingDelta * (1 - Math.exp(-settings.turnResponse * elapsed))
-          const bankTarget = clamp(
-            headingDelta * 0.72,
-            -settings.maximumBank,
-            settings.maximumBank,
-          )
-          view.bank += (bankTarget - view.bank) * (1 - Math.exp(-4.2 * elapsed))
-        }
+        const headingDelta = shortestAngle(
+          upperFacingAngle(agent.travelHeading) - view.heading,
+        )
+        const headingStep = clamp(
+          headingDelta *
+            (1 - Math.exp(-settings.presentationTurnResponse * elapsed)),
+          -settings.maximumPresentationTurnRate * elapsed,
+          settings.maximumPresentationTurnRate * elapsed,
+        )
+        view.heading += headingStep
+        const bankTarget = clamp(
+          (agent.turnRate / settings.turnRate[1]) * settings.maximumBank,
+          -settings.maximumBank,
+          settings.maximumBank,
+        )
+        view.bank += (bankTarget - view.bank) * (1 - Math.exp(-4.2 * elapsed))
 
-        const flapClock =
-          (time / 1000) *
-            agent.flapFrequency *
-            mix(1, settings.readingFlapScale, readingBlend) *
-            TAU +
-          agent.flapPhase
+        const flapWave = 0.5 + Math.sin(agent.flapPhase) * 0.5
+        const flapTravel =
+          agent.flapAmplitude *
+          mix(settings.pauseFlapScale, 1, clamp(agent.flapEnergy, 0, 1))
         const flapAmount =
           settings.flapOpenAngle +
-          (0.5 + Math.sin(flapClock) * 0.5) * agent.flapAmplitude
-
+          Math.pow(flapWave, 0.72) * flapTravel
+        const bodyFlutter = Math.sin(agent.flapPhase) * agent.flapEnergy
         view.root.position.set(
           agent.position.x,
           agent.position.y,
           agent.position.z,
         )
+        view.root.rotation.x =
+          view.pitchBias +
+          clamp(
+            agent.flutterVelocity.y / settings.flutterSpeed[1],
+            -1,
+            1,
+          ) * 0.045 +
+          bodyFlutter * 0.075
         view.root.rotation.z = view.heading
-        view.leftWing.rotation.x = view.bank + flapAmount
-        view.rightWing.rotation.x = view.bank - flapAmount
+        view.root.rotation.y =
+          view.bank +
+          view.yawBias +
+          Math.cos(agent.flapPhase + 0.4) * agent.flapEnergy * 0.055
+        view.leftWing.rotation.x = flapAmount
+        view.rightWing.rotation.x = -flapAmount
       }
 
       updateDebugPaths(debugLayer, flock.agents)
       canvasElement.dataset.readingBlend = readingBlend.toFixed(3)
+      canvasElement.dataset.frameTime = time.toFixed(1)
       canvasElement.dataset.averageSpeed = (
         totalSpeed / Math.max(flock.agents.length, 1)
       ).toFixed(2)
@@ -410,6 +432,21 @@ export function ButterflyLayer({
         .map(
           (agent) =>
             `${agent.id}:${agent.position.x.toFixed(1)},${agent.position.y.toFixed(1)},${agent.position.z.toFixed(2)},${agent.behavior}`,
+        )
+        .join('|')
+      canvasElement.dataset.behaviors = Object.entries(behaviorCounts)
+        .map(([behavior, count]) => `${behavior}:${count}`)
+        .join('|')
+      canvasElement.dataset.flight = flock.agents
+        .map(
+          (agent) =>
+            `${agent.id}:${agent.speed.toFixed(1)},${agent.turnRate.toFixed(2)},${agent.travelHeading.toFixed(2)}`,
+        )
+        .join('|')
+      canvasElement.dataset.presentation = views
+        .map(
+          (view, index) =>
+            `${index}:${view.heading.toFixed(2)},${view.bank.toFixed(3)}`,
         )
         .join('|')
       canvasElement.dataset.paused = 'false'
@@ -432,43 +469,26 @@ export function ButterflyLayer({
         )
         camera.position.z = 10
 
-        const bodyGeometry = new THREE.CylinderGeometry(
-          0.38,
-          0.52,
-          settings.bodyLength,
-          5,
-          1,
-        )
-        bodyGeometry.rotateZ(Math.PI / 2)
-        const leftWingGeometry = createWingGeometry(settings, 1)
-        const rightWingGeometry = createWingGeometry(settings, -1)
-        sharedGeometries.push(
-          bodyGeometry,
-          leftWingGeometry,
-          rightWingGeometry,
-        )
+        butterflyGeometry = createButterflyGeometrySet(settings)
+        sharedGeometries.push(...butterflyGeometry.all)
 
-        const bodyMaterial = new THREE.MeshLambertMaterial({
+        const bodyMaterial = new THREE.MeshBasicMaterial({
           color: settings.bodyColor,
-          flatShading: true,
         })
         sharedMaterials.push(bodyMaterial)
         for (const color of settings.wingColors) {
+          const hindwingColor = new THREE.Color(color).offsetHSL(0, -0.025, 0.075)
           sharedMaterials.push(
-            new THREE.MeshLambertMaterial({
+            new THREE.MeshBasicMaterial({
               color,
-              emissive: settings.wingEmissive,
-              emissiveIntensity: settings.wingEmissiveIntensity,
-              flatShading: true,
+              side: THREE.DoubleSide,
+            }),
+            new THREE.MeshBasicMaterial({
+              color: hindwingColor,
               side: THREE.DoubleSide,
             }),
           )
         }
-
-        scene.add(new THREE.HemisphereLight(0xffe7aa, 0x30361f, 1.65))
-        const sun = new THREE.DirectionalLight(0xffd987, 0.82)
-        sun.position.set(-0.7, 1.1, 2.4)
-        scene.add(sun)
 
         occluderGeometry = new THREE.PlaneGeometry(
           settings.sourceWidth,
@@ -513,6 +533,40 @@ export function ButterflyLayer({
           mesh.frustumCulled = false
           scene?.add(mesh)
         })
+
+        const movingFlowerCanvas = document.querySelector<HTMLCanvasElement>(
+          '.scene__foreground-leaves',
+        )
+        if (movingFlowerCanvas) {
+          movingFlowerOccluder = new THREE.CanvasTexture(movingFlowerCanvas)
+          movingFlowerOccluder.flipY = false
+          movingFlowerOccluder.generateMipmaps = false
+          movingFlowerOccluder.minFilter = THREE.LinearFilter
+          movingFlowerOccluder.magFilter = THREE.LinearFilter
+          occluderTextures.push(movingFlowerOccluder)
+          const showMask = debug === 'occlusion' || debug === 'all'
+          const material = new THREE.MeshBasicMaterial({
+            map: movingFlowerOccluder,
+            color: showMask ? 0xb678dc : 0xffffff,
+            alphaTest: 0.01,
+            transparent: showMask,
+            opacity: showMask ? 0.42 : 1,
+            colorWrite: showMask,
+            depthWrite: true,
+            depthTest: true,
+            side: THREE.DoubleSide,
+          })
+          occluderMaterials.push(material)
+          const mesh = new THREE.Mesh(depthGeometry, material)
+          mesh.position.set(
+            settings.sourceWidth * 0.5,
+            settings.sourceHeight * 0.5,
+            MOVING_FLOWER_OCCLUDER_DEPTH,
+          )
+          mesh.frustumCulled = false
+          scene.add(mesh)
+          canvasElement.dataset.movingFlowerOccluder = 'active'
+        }
 
         renderer = new THREE.WebGLRenderer({
           canvas: canvasElement,

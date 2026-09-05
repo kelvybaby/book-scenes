@@ -6,6 +6,8 @@ The project should feel like entering the reader's emotional memory of a book ra
 
 The scene exists to give memorable language a physical home. A passage is not pasted over an image; it is discovered through an object whose meaning and behavior belong to the world.
 
+Visual principles and provisional ideas guide design choices; explicit exclusions are constraints. The [active specification](scenes/under-the-almond-trees.md) owns scene-specific requirements. Provisional ideas are not additional deliverables.
+
 ## First world: Under the Almond Trees
 
 The first tableau looks across the Park of the Evangels toward Fermina Daza's house. It is based on the early spatial relationship in the book without attempting an archaeological reconstruction.
@@ -59,11 +61,11 @@ Exact values remain provisional until concept frames are compared.
 - Paper ivory for passage surfaces
 - Warm near-black or ink brown rather than neutral digital black
 
-Use four to six dominant colours. Let light and material create variation instead of adding unrelated accents.
+Prefer a limited dominant palette, with variation from light and material.
 
 ## Typography voices
 
-Typography must be selected after the visual treatment, not before it.
+Choose typography in the rendered scene; retain the existing typeface unless the task calls for changing it.
 
 - **Passage voice:** a literary serif with excellent long-form readability, expressive italics, and enough historical character without becoming costume typography
 - **Utility voice:** a restrained sans-serif or occasional mono for quiet controls, discovery counts, and scene navigation
@@ -119,7 +121,7 @@ Ambient motion must stop when the scene is hidden. Pointer parallax should be me
 - Hover may invite, but click, tap, keyboard focus, and activation must complete the interaction.
 - The quotation reveal stays spatially related to its object on large screens.
 - Mobile may use a composed bottom sheet when an anchored label would become cramped.
-- Closing a passage returns the scene to the exact prior state.
+- Closing a passage restores its interaction state and focus; ambient time need not rewind.
 - No scores, collectibles language, achievement effects, or mandatory discovery order.
 
 ## Sound
@@ -131,8 +133,8 @@ Sound is optional and user-initiated. Potential elements include insects, leaves
 - Generic sepia magical-realism collage
 - A direct imitation of another artist or award site
 - Glossy AI HDR, plastic surfaces, or hyper-detailed faces
-- Glass navigation pills and startup-dashboard components
-- Aurora gradients, floating blobs, laser effects, and decorative particle fields
+- Glassmorphism, bento grids, glass navigation pills, and startup-dashboard components
+- Aurora gradients, glowing cursor blobs, laser effects, and decorative shaders or particle fields
 - Constant split-text, scramble-text, or word-by-word animation
 - Excessive bloom, blur, chromatic aberration, or film damage
 - Butterflies or yellow flowers used as automatic shorthand without scene-specific justification

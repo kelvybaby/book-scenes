@@ -1,10 +1,23 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type PointerEvent as ReactPointerEvent,
+} from 'react'
 import { ButterflyLayer } from './components/ButterflyLayer'
 import { DappledLight } from './components/DappledLight'
 import { FallingLeaves } from './components/FallingLeaves'
 import { LivingPlant } from './components/LivingPlant'
+import { SceneContext } from './components/SceneContext'
+import {
+  SceneSoundscape,
+  type SceneSoundscapeHandle,
+} from './components/SceneSoundscape'
 import { WindPage } from './components/WindPage'
 import { underTheAlmondTreesPassages } from './content/passages'
+import { BookModelLab } from './labs/book-model/BookModelLab'
 import { sceneAmbientWind } from './motion/AmbientWindField'
 
 const sceneImage =
@@ -23,7 +36,7 @@ const rightForegroundStatic =
   '/assets/scenes/under-the-almond-trees/under-the-almond-trees-right-foreground-static-v3.png'
 const flowerUnderpaint =
   '/assets/scenes/under-the-almond-trees/under-the-almond-trees-flower-underpaint-v1.png'
-type PageState = 'idle' | 'opening' | 'open' | 'closing' | 'gone'
+type PageState = 'idle' | 'opening' | 'open' | 'closing'
 
 const SCENE_SOURCE_WIDTH = 1672
 const SCENE_SOURCE_HEIGHT = 941
@@ -31,51 +44,88 @@ const SCENE_SOURCE_HEIGHT = 941
 // Both values are normalized coordinates in the 1672 × 941 source artwork.
 const BOOK_CUE_SOURCE_POSITION = { x: 0.219, y: 0.716 } as const
 const BOOK_CUE_VISUAL_CENTER = { x: 0.5, y: 0.63 } as const
-// This bounded prototype deliberately freezes every existing object layer so
-// visual judgment is limited to the procedural illumination canvas.
-const LIGHTING_PROTOTYPE_FREEZES_OBJECT_LAYERS = true
+// Keep the approved canopy and vegetation motion active alongside the ambient
+// effects. This can be restored to `true` for an isolated lighting comparison.
+const LIGHTING_PROTOTYPE_FREEZES_OBJECT_LAYERS = false
+const WORD_REVEAL_BASE_DURATION_MS = 1440
+const WORD_REVEAL_STEP_MS = 128
+
+const wordRevealDuration = (text: string) =>
+  WORD_REVEAL_BASE_DURATION_MS +
+  Math.max(0, text.trim().split(/\s+/).length - 1) * WORD_REVEAL_STEP_MS
+
+const windSeedOverride = (() => {
+  const rawSeed = new URLSearchParams(window.location.search).get('windSeed')
+  if (rawSeed === null || rawSeed.trim() === '') return null
+  const parsedSeed = Number(rawSeed)
+  return Number.isSafeInteger(parsedSeed) ? parsedSeed >>> 0 : null
+})()
+
+const createReleaseWindSeed = () => {
+  if (windSeedOverride !== null) return windSeedOverride
+  const seed = new Uint32Array(1)
+  crypto.getRandomValues(seed)
+  return seed[0]
+}
 
 function App() {
   const sceneRef = useRef<HTMLElement>(null)
   const readingLeavesRef = useRef<HTMLDivElement>(null)
+  const readingSheetRef = useRef<HTMLElement>(null)
   const bookTargetRef = useRef<HTMLButtonElement>(null)
-  const releaseButtonRef = useRef<HTMLButtonElement>(null)
+  const soundscapeRef = useRef<SceneSoundscapeHandle>(null)
   const currentOffset = useRef({ x: 0, y: 0 })
   const targetOffset = useRef({ x: 0, y: 0 })
   const cueNearbyRef = useRef(false)
   const revealedPassageIdsRef = useRef(new Set<string>())
+  const releasedWordOpacitiesRef = useRef<readonly number[]>([])
   const animationFrame = useRef<number | null>(null)
   const [loadedLayerCount, setLoadedLayerCount] = useState(0)
   const [activePassageIndex, setActivePassageIndex] = useState(0)
   const [pageState, setPageState] = useState<PageState>('idle')
   const [cueNearby, setCueNearby] = useState(false)
   const [windPageReady, setWindPageReady] = useState(false)
+  const [windSeed, setWindSeed] = useState(windSeedOverride ?? 0)
   const [revealingPassageId, setRevealingPassageId] = useState<string | null>(null)
   const activePassage = underTheAlmondTreesPassages[activePassageIndex]
-  const dappledLightDisabled =
-    new URLSearchParams(window.location.search).get('dapple') === 'off'
+  const dappledLightEnabled =
+    new URLSearchParams(window.location.search).get('dapple') === 'on'
+  const bookPrototypeEnabled =
+    new URLSearchParams(window.location.search).get('bookPrototype') === 'on'
 
   const handleWindPageReady = useCallback((ready: boolean) => {
     setWindPageReady(ready)
   }, [])
 
   const handlePageGone = useCallback(() => {
-    setPageState('gone')
+    soundscapeRef.current?.resetPageInteraction()
+    revealedPassageIdsRef.current = new Set()
+    releasedWordOpacitiesRef.current = []
+    setActivePassageIndex(0)
+    setRevealingPassageId(null)
+    setWindPageReady(false)
+    setPageState('idle')
+    window.requestAnimationFrame(() => bookTargetRef.current?.focus())
   }, [])
 
   const handlePageOpened = useCallback(() => {
-    revealedPassageIdsRef.current.add(underTheAlmondTreesPassages[0].id)
+    const firstPassage = underTheAlmondTreesPassages[0]
+    revealedPassageIdsRef.current.add(firstPassage.id)
+    soundscapeRef.current?.playWordReveal(wordRevealDuration(firstPassage.text))
     setPageState('open')
-    setRevealingPassageId(underTheAlmondTreesPassages[0].id)
-    window.requestAnimationFrame(() => releaseButtonRef.current?.focus())
+    setRevealingPassageId(firstPassage.id)
+    window.requestAnimationFrame(() => readingSheetRef.current?.focus())
   }, [])
 
   const handleOpening = useCallback(() => {
+    soundscapeRef.current?.playBookOpening()
     cueNearbyRef.current = false
     revealedPassageIdsRef.current = new Set()
+    releasedWordOpacitiesRef.current = []
     setCueNearby(false)
     setRevealingPassageId(null)
     setActivePassageIndex(0)
+    setWindSeed(createReleaseWindSeed())
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     setPageState(reducedMotion.matches ? 'open' : 'opening')
   }, [])
@@ -84,29 +134,70 @@ function App() {
     // The passage is selectable while it is at rest. Clear an active range before
     // handing its canvas counterpart back to the release animation so no browser
     // selection highlight is left behind as the DOM text is hidden.
+    const visibleWords = readingLeavesRef.current?.querySelectorAll<HTMLElement>(
+      '.reading-sheet__word',
+    )
+    releasedWordOpacitiesRef.current = visibleWords
+      ? Array.from(visibleWords, (word) =>
+          Number.parseFloat(window.getComputedStyle(word).opacity),
+        )
+      : []
     window.getSelection()?.removeAllRanges()
+    soundscapeRef.current?.stopWordReveal()
     setRevealingPassageId(null)
     setPageState('closing')
   }, [])
 
+  const handlePreviewPointerDown = useCallback(
+    (event: ReactPointerEvent<HTMLElement>) => {
+      if (pageState !== 'open') return
+      const target = event.target
+      if (target instanceof Node && readingLeavesRef.current?.contains(target)) return
+      handleRelease()
+    },
+    [handleRelease, pageState],
+  )
+
+  useEffect(() => {
+    if (pageState !== 'open') return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Escape' || event.repeat) return
+      event.preventDefault()
+      handleRelease()
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [handleRelease, pageState])
+
   const handlePassageChange = useCallback((index: number) => {
-    const passageId = underTheAlmondTreesPassages[index].id
+    const passage = underTheAlmondTreesPassages[index]
+    const passageId = passage.id
     const alreadyRevealed = revealedPassageIdsRef.current.has(passageId)
     setRevealingPassageId(alreadyRevealed ? null : passageId)
     setActivePassageIndex(index)
     if (!alreadyRevealed) {
       revealedPassageIdsRef.current.add(passageId)
+      soundscapeRef.current?.playWordReveal(wordRevealDuration(passage.text))
     }
   }, [])
+
+  const handlePageFlutter = useCallback(
+    (motion: Parameters<SceneSoundscapeHandle['updatePageFlutter']>[0]) => {
+      soundscapeRef.current?.updatePageFlutter(motion)
+    },
+    [],
+  )
 
   useEffect(() => {
     if (pageState !== 'closing') return
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     if (windPageReady && !reducedMotion.matches) return
 
-    const closingTimer = window.setTimeout(() => setPageState('gone'), 720)
+    const closingTimer = window.setTimeout(handlePageGone, 720)
     return () => window.clearTimeout(closingTimer)
-  }, [pageState, windPageReady])
+  }, [handlePageGone, pageState, windPageReady])
 
   const readingActive =
     pageState === 'opening' || pageState === 'open' || pageState === 'closing'
@@ -237,12 +328,16 @@ function App() {
       reducedMotion.removeEventListener('change', settle)
       finePointer.removeEventListener('change', settle)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
-      if (animationFrame.current !== null) cancelAnimationFrame(animationFrame.current)
+      if (animationFrame.current !== null) {
+        cancelAnimationFrame(animationFrame.current)
+        animationFrame.current = null
+      }
     }
   }, [readingActive])
 
   return (
-    <main className={`scene${readingActive ? ' scene--reading-active' : ''}`} ref={sceneRef}>
+    <>
+      <main className={`scene${readingActive ? ' scene--reading-active' : ''}`} ref={sceneRef}>
       <img
         className="scene__art"
         src={sceneImage}
@@ -263,9 +358,8 @@ function App() {
         draggable="false"
         decoding="async"
       />
-      {dappledLightDisabled ? null : <DappledLight />}
+      {dappledLightEnabled ? <DappledLight /> : null}
       <FallingLeaves readingActive={readingActive} wind={sceneAmbientWind} />
-      <ButterflyLayer readingActive={readingActive} wind={sceneAmbientWind} />
       {!LIGHTING_PROTOTYPE_FREEZES_OBJECT_LAYERS ? (
         <div
           className={`scene__layers${loadedLayerCount >= 4 ? ' scene__layers--ready' : ''}`}
@@ -311,6 +405,8 @@ function App() {
           />
         </div>
       ) : null}
+      <ButterflyLayer readingActive={readingActive} wind={sceneAmbientWind} />
+      <SceneSoundscape ref={soundscapeRef} />
       <div className="scene__reading-veil" aria-hidden="true" />
       <button
         ref={bookTargetRef}
@@ -326,10 +422,14 @@ function App() {
           <span className="book-cue__page" />
         </span>
       </button>
-      <section className="reading-preview" aria-labelledby="reading-preview-title">
-        <h1 className="visually-hidden" id="reading-preview-title">
+      <section
+        className={`reading-preview${pageState === 'open' ? ' reading-preview--dismissible' : ''}`}
+        aria-labelledby="reading-preview-title"
+        onPointerDown={handlePreviewPointerDown}
+      >
+        <h2 className="visually-hidden" id="reading-preview-title">
           Passage from Florentino&apos;s book of verse
-        </h1>
+        </h2>
         {readingActive ? (
           <>
             <WindPage
@@ -337,18 +437,24 @@ function App() {
               anchorRef={readingLeavesRef}
               originRef={bookTargetRef}
               passage={activePassage}
+              releasedWordOpacitiesRef={releasedWordOpacitiesRef}
               state={pageState}
+              windSeed={windSeed}
               onReady={handleWindPageReady}
               onOpened={handlePageOpened}
               onGone={handlePageGone}
+              onReleaseMotion={handlePageFlutter}
             />
             <div
               className={`reading-leaves reading-leaves--${activePassage.treatment} reading-leaves--${pageState}${windPageReady ? ' reading-leaves--mesh-ready' : ''}${revealingPassageId === activePassage.id ? ' reading-leaves--word-reveal' : ''}`}
               ref={readingLeavesRef}
             >
           <article
+            ref={readingSheetRef}
             className={`reading-sheet reading-sheet--${activePassage.treatment}`}
+            aria-labelledby="reading-preview-title"
             aria-live="polite"
+            tabIndex={-1}
           >
             <svg
               className="reading-sheet__fibers"
@@ -441,34 +547,14 @@ function App() {
                 </button>
               ))}
             </div>
-            <button
-              ref={releaseButtonRef}
-              className="page-release"
-              type="button"
-              onClick={handleRelease}
-            >
-              release
-            </button>
           </article>
             </div>
-            {pageState === 'open' ? (
-              <button className="opening-replay" type="button" onClick={handleOpening}>
-                replay opening
-              </button>
-            ) : null}
           </>
-        ) : pageState === 'gone' ? (
-          <div className="page-replay-group">
-            <button className="page-replay" type="button" onClick={() => setPageState('open')}>
-              restore page
-            </button>
-            <button className="opening-replay" type="button" onClick={handleOpening}>
-              replay opening
-            </button>
-          </div>
         ) : null}
       </section>
-    </main>
+      </main>
+      {bookPrototypeEnabled ? <BookModelLab /> : <SceneContext />}
+    </>
   )
 }
 

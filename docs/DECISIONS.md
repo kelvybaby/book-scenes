@@ -1,6 +1,6 @@
 # Decision log
 
-This file records decisions that affect the project beyond one implementation detail. New entries should state context, decision, and consequences. Do not rewrite old reasoning silently; append a superseding decision.
+This log preserves historical rationale. The active scene specification owns current requirements; later decisions supersede earlier ones where they conflict. Record material changes in direction with their reasons, not routine tuning or task progress. Preserve old reasoning when recording a superseding decision.
 
 ## 2026-08-01 — Keep the project private and local
 
@@ -192,6 +192,36 @@ This file records decisions that affect the project beyond one implementation de
 
 **Consequences:** The approved painting remains untouched and complete without canvas. The layer pauses when hidden and caps normal density and update rate. The later traveling ground gust may reuse landed-leaf visual language, but it should be a separate rare event and should not turn these sparse releases into a constant particle shower.
 
+## 2026-08-29 — Couple falling-leaf glide, turning, and attitude
+
+**Status:** Accepted implementation direction; visual tuning remains subject to reader approval
+
+**Context:** The first falling-leaf solver applied a small oscillating lateral target to an otherwise downward fall and advanced rotation independently at a near-constant rate. At scene scale this read as tiny leaves descending in straight vertical lanes, with spin unrelated to the path. Cornell's falling-paper experiments distinguish a side-to-side flutter mode—with gliding between rapid attitude changes at cusp-like turns—from a rotating tumble with sideways drift.
+
+**Decision:** Keep the registered transparent 2D canvas and the shared calm `AmbientWindField`, but replace the trajectory and attitude model. Sample starts from triangular distributions authored inside six foliage crowns; schedule them through a seeded shuffled source bag. Give each leaf a broad, slowly modulated glide, smooth low-frequency turbulence, turn-sensitive descent, and spring-coupled bank and pitch. Let only a minority transition into a delayed tumble. Preserve the Study Q texture and silhouette on both apparent faces, enlarge the rendered leaves by 1.55–1.95 times, and collect the principal artistic controls in `FALLING_LEAF_CONTROLS`.
+
+**Consequences:** The result borrows observed qualitative relationships rather than claiming computational fluid dynamics or reproducing one laboratory trajectory. Starts, paths, turns, and attitudes remain individually seeded and non-repeating at the scene level. Normal density stays capped at four, reading mode remains calmer but active, reduced motion remains empty, and the complete static painting remains the fallback.
+
+## 2026-08-30 — Protect the figure and bound falling-leaf travel
+
+**Status:** Accepted implementation correction; cadence and speed remain available for reader tuning
+
+**Context:** A dense deterministic audit found no stacking conflict with the active book light—the cue already renders above the leaf canvas—but one central-canopy trajectory entered the flattened Florentino-and-bench region. The same audit showed that accumulated lateral velocity could carry older leaves hundreds of pixels sideways and offscreen before they landed. Contact also stopped and rotated a leaf too abruptly, making the later fade difficult to distinguish from disappearance on impact.
+
+**Decision:** Increase normal descent to 20–30 source pixels per second, release one leaf every 2.8–4.2 seconds, and permit five active leaves. Add a smooth predictive clearance ellipse around Florentino, his hands, the book, and its discovery light. Bound each path with a softly moving horizontal anchor so glides remain broad without runaway travel. On ground contact, retain a short decelerating slide and ease rotation and roll toward a resting attitude over 2.8–4.1 seconds; hold opacity through most of that interval and fade only near the end.
+
+**Consequences:** The correction does not require a new mask, cutout asset, renderer, or collision system. Leaves curve around the flattened foreground figure instead of being abruptly erased, book-light stacking remains unchanged, more releases survive long enough to settle, and the static/reduced-motion fallback is unaffected. Runtime diagnostics are throttled and depth ordering is maintained at spawn rather than allocating and sorting a copy on every rendered frame.
+
+## 2026-09-02 — Increase falling-leaf flow with staggered local groups
+
+**Status:** Accepted implementation tuning; visual density remains available for reader review
+
+**Context:** The five-leaf cap and 2.8–4.2-second event interval often left only one or two leaves visually apparent across the wide composition. Increasing only vertical velocity would shorten each leaf's visible lifetime and could make the scene feel emptier, while simultaneous scene-wide batches would resemble a particle shower.
+
+**Decision:** Raise descent variation to 30–42 source pixels per second, shorten event spacing to 1.4–2.8 seconds, and allow up to twelve active leaves. Keep most events isolated, but give 32 percent of events a two-to-four-leaf group. Stagger members by 0.12–0.38 seconds and interpolate their spawn points toward one anchor inside a single authored foliage triangle, preserving spatial coherence without identical starts. Guarantee one staggered three-leaf group at initial scene entry so the effect becomes legible promptly.
+
+**Consequences:** Flutter, glide, banking, tumbling, appearance, wind response, protected-area routing, and settling remain unchanged. The existing canvas, source bag, and leaf solver are retained; the only additional runtime state is a short pending-spawn queue capped by the active-leaf limit.
+
 ## 2026-08-12 — Permit a butterfly population only around the far-right flowers
 
 **Status:** Experimental bounded proof; form and motion tuning remain subject to reader approval
@@ -201,3 +231,13 @@ This file records decisions that affect the project beyond one implementation de
 **Decision:** Use one registered transparent Three.js layer containing 11 desktop or 8 mobile butterfly groups. Share one body geometry, two wing geometries, and a small material set, but keep each group and wing transform independent rather than using `InstancedMesh`. Confine every initial position and changing target to one authored source-space habitat around the far-right flowering pot; do not create crossings, excursions, or other populations. Drive local steering from seeded changing targets, leaf approaches, hover pauses, smooth drift, separation, depth variation, and a weak sample of `AmbientWindField`. Use exact alpha from the already registered flower-branch cutouts as two depth-only vegetation masks. Keep the population visible but slower, quieter, and less opaque while reading. Render none under reduced motion.
 
 **Consequences:** The effect remains removable without changing Study Q, and the motion solver remains independent of Three.js. The renderer adds roughly 35 normal render objects at the desktop maximum (three meshes per insect plus two depth masks), uses shared resources and a fixed DPR of 1, lowers its registered buffer scale on mobile, pauses when hidden, and cleans up on unmount. Settings and query diagnostics make population, habitat, paths, masks, seed, and fallback observable. Any population outside the far-right flowers, noticeable composition crossing, collision mesh, scene-wide renderer, or GPU-instanced version requires a new visual need and decision.
+
+## 2026-08-30 — Replace butterfly glide with local burst states
+
+**Status:** Accepted implementation correction; visual cadence remains subject to reader approval
+
+**Context:** In the rendered Study Q scene, the first meshes inherited too much mustard, wall, and foliage colour; their large fold angle also made the wings nearly edge-on for much of the cycle, so individual agents read as flies or generic particles. The first solver steered continuously toward relatively distant targets with low-frequency value noise, producing smooth sliding paths. Close-interval inspection of the supplied reference shows a brighter warm-cream paired-wing silhouette and repeated near-pauses, short displacements, abrupt local heading changes, and active flap/body coupling.
+
+**Decision:** Keep the same 11-desktop/8-mobile population, shared geometry, registered renderer, depth masks, and far-right-only scope. Broaden and shallowly notch each wing, reduce the body, cap the fold before either wing disappears, and use three unlit painted yellows instead of dark Lambert shading plus emissive compensation. Replace slow arrival/noise steering with a seeded five-state solver: hover, flutter-burst, short dart, leaf inspection, and local wander. Keep every target within 36 source pixels, refresh flutter targets and held course offsets at sub-second intervals, permit high acceleration but continuous integration, and couple flap energy, thrust modulation, and body bob to the active behavior. Tighten the existing habitat ellipse so the more energetic motion remains clearly inside the flowering vegetation rather than touching the adjacent wall.
+
+**Consequences:** Motion now varies through discrete local decisions rather than a smooth rail or frame-random particle jitter. Wing activity becomes strongest during bursts and darts and softest during inspection, while per-agent frequency and phase remain independent. The change adds no render objects, textures, dependencies, or collision geometry; `MeshBasicMaterial` also removes the two butterfly-only lights. Reading attenuation, reduced-motion absence, mobile buffer scale, visibility pausing, resource cleanup, and exact plant occlusion remain unchanged. Behavior counts join the existing canvas diagnostics for tuning.

@@ -14,35 +14,49 @@ type SourceId =
   | 'doorway-tree'
   | 'left-tree'
 
+type Point = readonly [x: number, y: number]
+type SpawnTriangle = readonly [Point, Point, Point]
+type LeafFlow = 'ambient' | 'sky-canopy'
+
 type SourceZone = {
   id: SourceId
-  patches: readonly (
-    readonly [left: number, right: number, top: number, bottom: number]
-  )[]
+  triangles: readonly SpawnTriangle[]
   ground: (x: number) => number
   fieldPosition: readonly [minimum: number, maximum: number]
-  interval: readonly [minimum: number, maximum: number]
-  initialDelay: number
 }
 
 type FallingLeaf = {
   id: number
+  flow: LeafFlow
   source: SourceId
   x: number
   y: number
   velocityX: number
   velocityY: number
-  gravity: number
-  terminalSpeed: number
-  windResponse: number
-  baseDrift: number
+  descentSpeed: number
+  horizontalAnchor: number
+  travelRadius: number
+  lateralDirection: number
+  lateralDrift: number
   flutterAmplitude: number
   flutterPhase: number
-  flutterSpeed: number
-  tumble: number
-  tumbleSpeed: number
+  flutterFrequency: number
+  phaseModulation: number
+  secondaryPhase: number
+  turbulencePhase: number
+  turbulenceFrequency: number
+  turbulencePhaseTwo: number
+  turbulenceFrequencyTwo: number
+  tumbleBlend: number
+  tumbleStartAge: number
+  tumblePhase: number
+  tumbleRate: number
+  tumbleDirection: number
   rotation: number
-  rotationSpeed: number
+  rotationVelocity: number
+  orientationBias: number
+  roll: number
+  rollVelocity: number
   length: number
   widthRatio: number
   depth: number
@@ -53,7 +67,11 @@ type FallingLeaf = {
   landed: boolean
   landingAge: number
   landingDuration: number
+  landingRotationTarget: number
+  landingRollTarget: number
+  avoidanceSide: -1 | 1
   opacity: number
+  turnCount: number
 }
 
 const SOURCE_WIDTH = 1672
@@ -63,83 +81,121 @@ const RENDER_WIDTH = Math.round(SOURCE_WIDTH * RENDER_SCALE)
 const RENDER_HEIGHT = Math.round(SOURCE_HEIGHT * RENDER_SCALE)
 const TARGET_FRAME_MS = 1000 / 24
 const TAU = Math.PI * 2
-const MAX_ACTIVE_LEAVES = 4
 const SCENE_TEXTURE_SOURCE =
   '/assets/scenes/under-the-almond-trees/under-the-almond-trees-study-q.png'
 
-// Each patch is contained inside visible foliage instead of combining an x
-// corridor with one broad y range. The paths also avoid repeatedly crossing
-// either figure's face or hands.
+/**
+ * FALLING-LEAF ART DIRECTION CONTROLS
+ *
+ * These are the intentional scene-level controls. Per-leaf variation is
+ * sampled inside these ranges so tuning remains art-directable in one place.
+ */
+const FALLING_LEAF_CONTROLS = {
+  leafScale: { minimum: 1.55, maximum: 1.95 },
+  descentSpeed: { minimum: 30, maximum: 42 },
+  lateralDrift: { minimum: 3.5, maximum: 10 },
+  flutterAmplitude: { minimum: 34, maximum: 66 },
+  flutterFrequency: { minimum: 0.105, maximum: 0.19 },
+  tumbleProbability: 0.17,
+  windStrength: 11,
+  turbulenceStrength: 4.2,
+  spawnInterval: { minimum: 1.4, maximum: 2.8 },
+  maxActiveLeaves: 12,
+  clusterProbability: 0.32,
+  clusterSize: { minimum: 2, maximum: 4 },
+  clusterSpread: { minimum: 0.18, maximum: 0.38 },
+  clusterStagger: { minimum: 0.12, maximum: 0.38 },
+  settlingDuration: { minimum: 2.8, maximum: 4.1 },
+  protectedAreaStrength: 68,
+  skyCanopyFlow: {
+    spawnInterval: { minimum: 1.9, maximum: 2.55 },
+    recoveryInterval: { minimum: 0.65, maximum: 0.95 },
+    minimumSkyBandLeaves: 3,
+    skyBandBottom: 390,
+    maxActiveLeaves: 8,
+  },
+} as const
+
+// Leaves are free to move through the park, but the flattened figure and the
+// interactive book cannot occlude them correctly. A soft predictive clearance
+// region makes approaching trajectories curve around both instead of drawing
+// over Florentino, his hands, or the discovery light.
+const FLORENTINO_AND_BOOK_CLEARANCE = {
+  center: [366, 688] as const,
+  radius: [155, 170] as const,
+  verticalLead: 95,
+} as const
+
+// Triangles follow painted foliage masses. Barycentric sampling produces a
+// genuinely two-dimensional distribution without rectangular emitter edges.
 const SOURCE_ZONES: readonly SourceZone[] = [
   {
     id: 'upper-left-canopy',
-    patches: [
-      [34, 104, 86, 228],
-      [126, 236, 48, 176],
-      [266, 356, 22, 112],
+    triangles: [
+      [[30, 80], [116, 102], [62, 238]],
+      [[112, 42], [250, 58], [172, 184]],
+      [[246, 16], [376, 28], [314, 126]],
     ],
     ground: (x) => 610 + (x - 34) * 0.1,
     fieldPosition: [0.08, 0.8],
-    interval: [16, 24],
-    initialDelay: 0.35,
   },
   {
     id: 'central-canopy',
-    patches: [
-      [414, 520, 28, 126],
-      [574, 690, 16, 112],
-      [714, 786, 42, 144],
+    triangles: [
+      [[392, 16], [534, 24], [478, 142]],
+      [[548, 8], [700, 14], [638, 124]],
+      [[690, 30], [806, 48], [748, 158]],
     ],
     ground: (x) => 650 + (x - 414) * 0.105,
     fieldPosition: [2.1, 3.6],
-    interval: [17, 26],
-    initialDelay: 1.2,
   },
   {
     id: 'house-canopy',
-    patches: [
-      [800, 936, 32, 150],
-      [968, 1080, 50, 202],
+    triangles: [
+      [[782, 24], [946, 38], [874, 172]],
+      [[940, 34], [1098, 62], [1020, 218]],
     ],
     ground: (x) => 681 + (x - 800) * 0.05,
     fieldPosition: [4.05, 5.42],
-    interval: [15, 23],
-    initialDelay: 2.4,
   },
   {
     id: 'courtyard-tree',
-    patches: [
-      [1084, 1194, 92, 254],
-      [1216, 1322, 118, 296],
+    triangles: [
+      [[1072, 74], [1208, 108], [1138, 272]],
+      [[1196, 98], [1338, 138], [1260, 310]],
     ],
     ground: (x) => 696 + (x - 1084) * 0.035,
     fieldPosition: [5.55, 7.2],
-    interval: [14, 22],
-    initialDelay: 3.7,
   },
   {
     id: 'doorway-tree',
-    patches: [
-      [1294, 1362, 184, 322],
-      [1508, 1592, 192, 354],
+    triangles: [
+      [[1284, 166], [1380, 196], [1334, 340]],
+      [[1494, 176], [1608, 218], [1548, 370]],
     ],
     ground: (x) => 706 + (x - 1294) * 0.035,
     fieldPosition: [7.25, 8.65],
-    interval: [13, 21],
-    initialDelay: 5.1,
   },
   {
     id: 'left-tree',
-    patches: [
-      [62, 126, 360, 446],
-      [146, 220, 346, 466],
+    triangles: [
+      [[52, 346], [138, 372], [92, 462]],
+      [[132, 330], [232, 370], [178, 482]],
     ],
     ground: (x) => 616 + (x - 62) * 0.16,
     fieldPosition: [0.55, 1.35],
-    interval: [13, 20],
-    initialDelay: 6.5,
   },
 ]
+
+const SOURCE_ZONE_BY_ID = Object.fromEntries(
+  SOURCE_ZONES.map((zone) => [zone.id, zone]),
+) as Record<SourceId, SourceZone>
+
+// A dedicated flow uses only the two foliage pockets directly above
+// Florentino. Their leaves cross the open sky and clouds before entering the
+// busier lower half of the painting, where they remain part of the same motion.
+const SKY_CANOPY_SOURCE = SOURCE_ZONE_BY_ID['central-canopy']
+const SKY_CANOPY_TRIANGLES = SKY_CANOPY_SOURCE.triangles.slice(0, 2)
 
 const LEAF_PALETTES = [
   ['#a98a32', '#685823', '#d3b34f'],
@@ -167,6 +223,25 @@ const mix = (minimum: number, maximum: number, amount: number) =>
 const smoothstep = (minimum: number, maximum: number, value: number) => {
   const amount = clamp((value - minimum) / (maximum - minimum), 0, 1)
   return amount * amount * (3 - 2 * amount)
+}
+
+const damp = (current: number, target: number, response: number, delta: number) =>
+  current + (target - current) * (1 - Math.exp(-response * delta))
+
+const wrapAngle = (angle: number) => Math.atan2(Math.sin(angle), Math.cos(angle))
+
+const sampleTriangle = (triangle: SpawnTriangle, random: () => number): Point => {
+  let first = random()
+  let second = random()
+  if (first + second > 1) {
+    first = 1 - first
+    second = 1 - second
+  }
+  const [a, b, c] = triangle
+  return [
+    a[0] + (b[0] - a[0]) * first + (c[0] - a[0]) * second,
+    a[1] + (b[1] - a[1]) * first + (c[1] - a[1]) * second,
+  ]
 }
 
 function mulberry32(seed: number) {
@@ -290,7 +365,7 @@ function createLeafSprites(source: HTMLImageElement | null) {
 }
 
 function sourceGround(source: SourceId, x: number) {
-  return SOURCE_ZONES.find((zone) => zone.id === source)?.ground(x) ?? SOURCE_HEIGHT
+  return SOURCE_ZONE_BY_ID[source].ground(x)
 }
 
 function isDebugDense() {
@@ -316,9 +391,17 @@ export function FallingLeaves({ readingActive, wind }: FallingLeavesProps) {
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     const random = mulberry32(0x4c454146)
+    // Keep this stream deterministic and independent: adding sky leaves must
+    // not consume random samples or alter spawn choices elsewhere in the scene.
+    const skyCanopyRandom = mulberry32(0x534b594c)
     let sprites: HTMLCanvasElement[] = []
     const windSample: AmbientWindSample = { broad: 0, detail: 0 }
     const leaves: FallingLeaf[] = []
+    const pendingSpawns: Array<{
+      at: number
+      source: SourceZone
+      point: Point
+    }> = []
     const debugDense = isDebugDense()
     const forcedReducedMotion = isReducedMotionForced()
     let disposed = false
@@ -327,26 +410,40 @@ export function FallingLeaves({ readingActive, wind }: FallingLeavesProps) {
     let lastFrameTime = performance.now()
     let accumulatedFrameTime = TARGET_FRAME_MS
     let simulationTime = 0
-    const nextEmissionAt = Object.fromEntries(
-      SOURCE_ZONES.map((source, index) => [
-        source.id,
-        debugDense ? 0.15 + index * 0.34 : source.initialDelay,
-      ]),
-    ) as Record<SourceId, number>
+    let nextEmissionAt = debugDense ? 0.15 : 0.42
+    let nextSkyCanopyEmissionAt = 0.18
+    let sourceBag: SourceZone[] = []
+    let previousSource: SourceId | null = null
     let leafSequence = 0
     let emittedCount = 0
+    let ambientEmittedCount = 0
     let readingBlend = readingActiveRef.current ? 1 : 0
+    let lastDiagnosticsAt = Number.NEGATIVE_INFINITY
 
-    const updateDiagnostics = (paused: boolean) => {
+    const updateDiagnostics = (paused: boolean, force = false) => {
+      const diagnosticInterval = debugDense ? 0.1 : 0.25
+      if (!force && simulationTime - lastDiagnosticsAt < diagnosticInterval) return
+      lastDiagnosticsAt = simulationTime
       canvas.dataset.activeCount = String(leaves.length)
       canvas.dataset.emittedCount = String(emittedCount)
+      let skyCanopyCount = 0
+      let skyCanopyBandCount = 0
+      for (const leaf of leaves) {
+        if (leaf.flow !== 'sky-canopy') continue
+        skyCanopyCount += 1
+        if (!leaf.landed && leaf.y < FALLING_LEAF_CONTROLS.skyCanopyFlow.skyBandBottom) {
+          skyCanopyBandCount += 1
+        }
+      }
+      canvas.dataset.skyCanopyCount = String(skyCanopyCount)
+      canvas.dataset.skyCanopyBandCount = String(skyCanopyBandCount)
       canvas.dataset.sources = leaves.map((leaf) => leaf.source).join(',')
       canvas.dataset.readingBlend = readingBlend.toFixed(3)
       canvas.dataset.paused = String(paused)
       canvas.dataset.leafStates = leaves
         .map(
           (leaf) =>
-            `${leaf.id}:${leaf.x.toFixed(1)},${leaf.y.toFixed(1)},${leaf.velocityY.toFixed(1)},${leaf.rotation.toFixed(2)},${leaf.landed ? 1 : 0}`,
+            `${leaf.id}:${leaf.source},${leaf.x.toFixed(1)},${leaf.y.toFixed(1)},${leaf.velocityX.toFixed(1)},${leaf.velocityY.toFixed(1)},${leaf.rotation.toFixed(2)},${leaf.roll.toFixed(2)},${leaf.tumbleBlend.toFixed(2)},${leaf.turnCount},${leaf.landed ? 1 : 0}`,
         )
         .join('|')
     }
@@ -354,13 +451,14 @@ export function FallingLeaves({ readingActive, wind }: FallingLeavesProps) {
     const clear = () => {
       context.clearRect(0, 0, RENDER_WIDTH, RENDER_HEIGHT)
       leaves.length = 0
-      updateDiagnostics(true)
+      pendingSpawns.length = 0
+      updateDiagnostics(true, true)
     }
 
     const stop = () => {
       if (frame !== null) window.cancelAnimationFrame(frame)
       frame = null
-      updateDiagnostics(true)
+      updateDiagnostics(true, true)
     }
 
     const canAnimate = () =>
@@ -377,61 +475,223 @@ export function FallingLeaves({ readingActive, wind }: FallingLeavesProps) {
       frame = window.requestAnimationFrame(render)
     }
 
-    const spawnLeaf = (source: SourceZone, paired: boolean) => {
-      const patch = source.patches[Math.floor(random() * source.patches.length)]
-      const depth = mix(0.72, 1.14, random())
-      const x = mix(patch[0], patch[1], random()) + (paired ? mix(-8, 8, random()) : 0)
-      const y = mix(patch[2], patch[3], random()) + (paired ? mix(-12, 12, random()) : 0)
-      const fallDirection = random() < 0.46 ? -1 : 1
+    const takeNextSource = () => {
+      if (sourceBag.length === 0) {
+        sourceBag = [...SOURCE_ZONES]
+        for (let index = sourceBag.length - 1; index > 0; index -= 1) {
+          const swapIndex = Math.floor(random() * (index + 1))
+          ;[sourceBag[index], sourceBag[swapIndex]] = [sourceBag[swapIndex], sourceBag[index]]
+        }
+        if (sourceBag.at(-1)?.id === previousSource && sourceBag.length > 1) {
+          ;[sourceBag[0], sourceBag[sourceBag.length - 1]] = [
+            sourceBag[sourceBag.length - 1],
+            sourceBag[0],
+          ]
+        }
+      }
+      const source = sourceBag.pop() ?? SOURCE_ZONES[0]
+      previousSource = source.id
+      return source
+    }
+
+    const spawnLeaf = (
+      source: SourceZone,
+      point: Point,
+      flow: LeafFlow = 'ambient',
+      randomSource: () => number = random,
+    ) => {
+      const [x, y] = point
+      const depth = mix(0.72, 1.14, randomSource())
+      const lateralDirection = randomSource() < 0.5 ? -1 : 1
+      const flutterFrequency = mix(
+        FALLING_LEAF_CONTROLS.flutterFrequency.minimum,
+        FALLING_LEAF_CONTROLS.flutterFrequency.maximum,
+        randomSource(),
+      )
+      const flutterAmplitude =
+        mix(
+          FALLING_LEAF_CONTROLS.flutterAmplitude.minimum,
+          FALLING_LEAF_CONTROLS.flutterAmplitude.maximum,
+          randomSource(),
+        ) * depth
+      const flutterPhase = randomSource() * TAU
+      const leafScale = mix(
+        FALLING_LEAF_CONTROLS.leafScale.minimum,
+        FALLING_LEAF_CONTROLS.leafScale.maximum,
+        randomSource(),
+      )
+      const descentSpeed =
+        mix(
+          FALLING_LEAF_CONTROLS.descentSpeed.minimum,
+          FALLING_LEAF_CONTROLS.descentSpeed.maximum,
+          randomSource(),
+        ) *
+        mix(0.92, 1.08, depth)
+      const initialGlideVelocity =
+        lateralDirection *
+        flutterAmplitude *
+        TAU *
+        flutterFrequency *
+        Math.cos(flutterPhase)
+      const willTumble = randomSource() < FALLING_LEAF_CONTROLS.tumbleProbability
+      const orientationBias = mix(-0.72, 0.72, randomSource())
+      const avoidanceSide: -1 | 1 =
+        x < FLORENTINO_AND_BOOK_CLEARANCE.center[0] ? -1 : 1
 
       leaves.push({
         id: leafSequence,
+        flow,
         source: source.id,
         x,
         y,
-        velocityX: mix(-2.5, 2.5, random()),
-        velocityY: mix(5, 12, random()) * depth,
-        gravity: mix(16, 23, random()) * depth,
-        terminalSpeed: mix(29, 43, random()) * depth,
-        windResponse: mix(7, 12, random()) * depth,
-        baseDrift: fallDirection * mix(1.2, 4.6, random()),
-        flutterAmplitude: mix(5.5, 11.5, random()) * depth,
-        flutterPhase: random() * TAU,
-        flutterSpeed: mix(1.65, 2.75, random()),
-        tumble: random() * TAU,
-        tumbleSpeed: fallDirection * mix(1.2, 2.4, random()),
-        rotation: random() * TAU,
-        rotationSpeed: fallDirection * mix(0.28, 0.82, random()),
-        length: mix(10, 16, random()) * depth,
-        widthRatio: mix(0.31, 0.43, random()),
+        velocityX: initialGlideVelocity * mix(0.45, 0.78, randomSource()),
+        velocityY: descentSpeed * mix(0.42, 0.7, randomSource()),
+        descentSpeed,
+        horizontalAnchor: x,
+        travelRadius: flutterAmplitude * 1.8 + 28,
+        lateralDirection,
+        lateralDrift:
+          lateralDirection *
+          mix(
+            FALLING_LEAF_CONTROLS.lateralDrift.minimum,
+            FALLING_LEAF_CONTROLS.lateralDrift.maximum,
+            randomSource(),
+          ),
+        flutterAmplitude,
+        flutterPhase,
+        flutterFrequency,
+        phaseModulation: mix(0.035, 0.12, randomSource()),
+        secondaryPhase: randomSource() * TAU,
+        turbulencePhase: randomSource() * TAU,
+        turbulenceFrequency: mix(0.055, 0.105, randomSource()),
+        turbulencePhaseTwo: randomSource() * TAU,
+        turbulenceFrequencyTwo: mix(0.11, 0.19, randomSource()),
+        tumbleBlend: 0,
+        tumbleStartAge: willTumble
+          ? mix(2.2, 7.2, randomSource())
+          : Number.POSITIVE_INFINITY,
+        tumblePhase: randomSource() * TAU,
+        tumbleRate: mix(1.05, 1.72, randomSource()),
+        tumbleDirection: randomSource() < 0.5 ? -1 : 1,
+        rotation: orientationBias,
+        rotationVelocity: 0,
+        orientationBias,
+        roll: mix(-0.72, 0.72, randomSource()),
+        rollVelocity: 0,
+        length: mix(10, 16, randomSource()) * depth * leafScale,
+        widthRatio: mix(0.31, 0.43, randomSource()),
         depth,
-        sprite: Math.floor(random() * sprites.length),
-        fieldPosition: mix(source.fieldPosition[0], source.fieldPosition[1], random()),
+        sprite: Math.floor(randomSource() * sprites.length),
+        fieldPosition: mix(
+          source.fieldPosition[0],
+          source.fieldPosition[1],
+          randomSource(),
+        ),
         age: 0,
-        fadeIn: mix(0.38, 0.72, random()),
+        fadeIn: mix(0.38, 0.72, randomSource()),
         landed: false,
         landingAge: 0,
-        landingDuration: mix(1.6, 2.7, random()),
-        opacity: mix(0.76, 0.94, random()),
+        landingDuration: mix(
+          FALLING_LEAF_CONTROLS.settlingDuration.minimum,
+          FALLING_LEAF_CONTROLS.settlingDuration.maximum,
+          randomSource(),
+        ),
+        landingRotationTarget: orientationBias,
+        landingRollTarget: 0.12,
+        avoidanceSide,
+        opacity: mix(0.76, 0.94, randomSource()),
+        turnCount: 0,
       })
+      leaves.sort((first, second) => first.depth - second.depth)
       leafSequence += 1
       emittedCount += 1
+      if (flow === 'ambient') ambientEmittedCount += 1
     }
 
-    const scheduleEmission = (source: SourceZone) => {
-      spawnLeaf(source, false)
+    const scheduleEmission = (
+      maximumLeaves: number,
+      ambientLeafCount: number,
+    ) => {
+      const source = takeNextSource()
+      const triangle = source.triangles[Math.floor(random() * source.triangles.length)]
+      const anchor = sampleTriangle(triangle, random)
+      const firstRelease = ambientEmittedCount === 0
+      const requestedGroupSize = firstRelease
+        ? 3
+        : random() < FALLING_LEAF_CONTROLS.clusterProbability
+          ? Math.floor(
+              mix(
+                FALLING_LEAF_CONTROLS.clusterSize.minimum,
+                FALLING_LEAF_CONTROLS.clusterSize.maximum + 1,
+                random(),
+              ),
+            )
+          : 1
+      const openSlots = Math.max(
+        1,
+        maximumLeaves - ambientLeafCount - pendingSpawns.length,
+      )
+      const groupSize = Math.min(requestedGroupSize, openSlots)
 
-      const pairChance = debugDense ? 0.38 : 0.1
-      if (leaves.length < MAX_ACTIVE_LEAVES && random() < pairChance) {
-        spawnLeaf(source, true)
+      spawnLeaf(source, anchor)
+      let stagger = 0
+      for (let index = 1; index < groupSize; index += 1) {
+        const nearbyPoint = sampleTriangle(triangle, random)
+        const spread = mix(
+          FALLING_LEAF_CONTROLS.clusterSpread.minimum,
+          FALLING_LEAF_CONTROLS.clusterSpread.maximum,
+          random(),
+        )
+        stagger += mix(
+          FALLING_LEAF_CONTROLS.clusterStagger.minimum,
+          FALLING_LEAF_CONTROLS.clusterStagger.maximum,
+          random(),
+        )
+        pendingSpawns.push({
+          at: simulationTime + stagger,
+          source,
+          point: [
+            mix(anchor[0], nearbyPoint[0], spread),
+            mix(anchor[1], nearbyPoint[1], spread),
+          ],
+        })
       }
+      pendingSpawns.sort((first, second) => first.at - second.at)
 
       const readingIntervalScale = mix(1, 1.22, readingBlend)
-      nextEmissionAt[source.id] =
+      nextEmissionAt =
         simulationTime +
         (debugDense
           ? mix(0.9, 1.45, random())
-          : mix(source.interval[0], source.interval[1], random())) *
+          : mix(
+              FALLING_LEAF_CONTROLS.spawnInterval.minimum,
+              FALLING_LEAF_CONTROLS.spawnInterval.maximum,
+              random(),
+            )) *
+          readingIntervalScale
+    }
+
+    const scheduleSkyCanopyEmission = (skyBandLeafCount: number) => {
+      const triangle =
+        SKY_CANOPY_TRIANGLES[
+          Math.floor(skyCanopyRandom() * SKY_CANOPY_TRIANGLES.length)
+        ]
+      spawnLeaf(
+        SKY_CANOPY_SOURCE,
+        sampleTriangle(triangle, skyCanopyRandom),
+        'sky-canopy',
+        skyCanopyRandom,
+      )
+
+      const interval =
+        skyBandLeafCount <
+        FALLING_LEAF_CONTROLS.skyCanopyFlow.minimumSkyBandLeaves
+          ? FALLING_LEAF_CONTROLS.skyCanopyFlow.recoveryInterval
+          : FALLING_LEAF_CONTROLS.skyCanopyFlow.spawnInterval
+      const readingIntervalScale = mix(1, 1.12, readingBlend)
+      nextSkyCanopyEmissionAt =
+        simulationTime +
+        mix(interval.minimum, interval.maximum, skyCanopyRandom()) *
           readingIntervalScale
     }
 
@@ -441,52 +701,225 @@ export function FallingLeaves({ readingActive, wind }: FallingLeavesProps) {
       if (leaf.landed) {
         leaf.landingAge += delta
         leaf.x += leaf.velocityX * delta
-        leaf.velocityX *= Math.exp(-3.2 * delta)
+        leaf.velocityX *= Math.exp(-2.45 * delta)
+        leaf.rotation = wrapAngle(
+          leaf.rotation +
+            wrapAngle(leaf.landingRotationTarget - leaf.rotation) *
+              (1 - Math.exp(-3.6 * delta)),
+        )
+        leaf.roll = damp(leaf.roll, leaf.landingRollTarget, 3.8, delta)
         return
       }
 
       wind.sample(leaf.fieldPosition, windTime, windSample)
       const motionScale = mix(1, 0.76, readingBlend)
       const windScale = mix(1, 0.62, readingBlend)
-      const flutterPhase = leaf.age * leaf.flutterSpeed * motionScale + leaf.flutterPhase
-      const lateralFlutter =
-        Math.sin(flutterPhase) * leaf.flutterAmplitude +
-        Math.sin(flutterPhase * 0.47 + leaf.flutterPhase * 1.7) *
+      const phaseRate =
+        TAU *
+        leaf.flutterFrequency *
+        (1 +
+          Math.sin(leaf.age * TAU * 0.043 + leaf.secondaryPhase) *
+            leaf.phaseModulation +
+          windSample.detail * 0.025) *
+        motionScale
+      leaf.flutterPhase += phaseRate * delta
+      leaf.tumblePhase += leaf.tumbleRate * leaf.tumbleDirection * motionScale * delta
+      const tumbleTarget = leaf.age >= leaf.tumbleStartAge ? 1 : 0
+      leaf.tumbleBlend = damp(leaf.tumbleBlend, tumbleTarget, 0.58, delta)
+
+      const phaseCosine = Math.cos(leaf.flutterPhase)
+      const turningStrength = Math.pow(1 - Math.abs(phaseCosine), 2.7)
+      const glideVelocity =
+        leaf.lateralDirection *
+        leaf.flutterAmplitude *
+        phaseRate *
+        (phaseCosine +
+          Math.cos(leaf.flutterPhase * 2.07 + leaf.secondaryPhase) * 0.14)
+      const windVelocity =
+        windSample.broad * FALLING_LEAF_CONTROLS.windStrength * windScale
+      const turbulenceVelocity =
+        (Math.sin(
+          leaf.age * TAU * leaf.turbulenceFrequency + leaf.turbulencePhase,
+        ) *
+          0.72 +
+          Math.sin(
+            leaf.age * TAU * leaf.turbulenceFrequencyTwo +
+              leaf.turbulencePhaseTwo,
+          ) *
+            0.28) *
+        FALLING_LEAF_CONTROLS.turbulenceStrength *
+        windScale
+      leaf.horizontalAnchor = clamp(
+        leaf.horizontalAnchor +
+          (leaf.lateralDrift * 0.16 + windVelocity * 0.08) * delta,
+        24,
+        SOURCE_WIDTH - 24,
+      )
+      const flutterTargetVelocityX =
+        glideVelocity + leaf.lateralDrift + windVelocity + turbulenceVelocity
+      const tumbleTargetVelocityX =
+        leaf.lateralDrift * 0.72 +
+        leaf.lateralDirection *
           leaf.flutterAmplitude *
-          0.24
-      const targetVelocityX =
-        leaf.baseDrift + windSample.broad * leaf.windResponse * windScale + lateralFlutter
-      leaf.velocityX +=
-        (targetVelocityX - leaf.velocityX) * (1 - Math.exp(-1.15 * delta))
-      leaf.velocityY = Math.min(
-        leaf.terminalSpeed * motionScale,
-        leaf.velocityY + leaf.gravity * motionScale * delta,
+          leaf.tumbleRate *
+          0.42 *
+          Math.cos(leaf.tumblePhase * 0.54 + leaf.secondaryPhase) +
+        windVelocity +
+        turbulenceVelocity * 0.7
+      const unconstrainedTargetVelocityX = mix(
+        flutterTargetVelocityX,
+        tumbleTargetVelocityX,
+        leaf.tumbleBlend,
+      )
+      const anchorDisplacement = leaf.x - leaf.horizontalAnchor
+      const travelLimitBlend = smoothstep(
+        leaf.travelRadius * 0.72,
+        leaf.travelRadius,
+        Math.abs(anchorDisplacement),
+      )
+      const returnDirection = -Math.sign(anchorDisplacement || leaf.lateralDirection)
+      const returnVelocity =
+        returnDirection *
+        Math.max(Math.abs(unconstrainedTargetVelocityX), 52)
+      const unavoidedTargetVelocityX = mix(
+        unconstrainedTargetVelocityX,
+        returnVelocity,
+        travelLimitBlend,
+      )
+      const predictedX = leaf.x + unavoidedTargetVelocityX * 0.9
+      const normalizedAvoidanceX =
+        (predictedX - FLORENTINO_AND_BOOK_CLEARANCE.center[0]) /
+        FLORENTINO_AND_BOOK_CLEARANCE.radius[0]
+      const normalizedAvoidanceY =
+        (leaf.y - FLORENTINO_AND_BOOK_CLEARANCE.center[1]) /
+        FLORENTINO_AND_BOOK_CLEARANCE.radius[1]
+      const avoidanceDistance = Math.hypot(
+        normalizedAvoidanceX,
+        normalizedAvoidanceY,
+      )
+      const approachBlend = smoothstep(
+        FLORENTINO_AND_BOOK_CLEARANCE.center[1] -
+          FLORENTINO_AND_BOOK_CLEARANCE.radius[1] -
+          FLORENTINO_AND_BOOK_CLEARANCE.verticalLead,
+        FLORENTINO_AND_BOOK_CLEARANCE.center[1] -
+          FLORENTINO_AND_BOOK_CLEARANCE.radius[1] +
+          24,
+        leaf.y,
+      )
+      const departureBlend =
+        1 -
+        smoothstep(
+          FLORENTINO_AND_BOOK_CLEARANCE.center[1] +
+            FLORENTINO_AND_BOOK_CLEARANCE.radius[1] *
+              0.45,
+          FLORENTINO_AND_BOOK_CLEARANCE.center[1] +
+            FLORENTINO_AND_BOOK_CLEARANCE.radius[1],
+          leaf.y,
+        )
+      const avoidanceBlend =
+        (1 - smoothstep(0.82, 1.38, avoidanceDistance)) *
+        approachBlend *
+        departureBlend
+      const protectedAreaVelocity =
+        leaf.avoidanceSide *
+        Math.max(
+          Math.abs(unavoidedTargetVelocityX),
+          FALLING_LEAF_CONTROLS.protectedAreaStrength,
+        )
+      const targetVelocityX = mix(
+        unavoidedTargetVelocityX,
+        protectedAreaVelocity,
+        avoidanceBlend,
+      )
+      const previousVelocityX = leaf.velocityX
+      leaf.velocityX = damp(
+        leaf.velocityX,
+        targetVelocityX,
+        mix(1.45, 2.25, turningStrength),
+        delta,
+      )
+      if (
+        previousVelocityX * leaf.velocityX < 0 &&
+        Math.abs(targetVelocityX) > 5
+      ) {
+        leaf.turnCount += 1
+      }
+
+      const flutterTargetVelocityY =
+        leaf.descentSpeed *
+        motionScale *
+        (1 - turningStrength * 0.43 +
+          Math.sin(leaf.flutterPhase * 2 + leaf.secondaryPhase) * 0.065)
+      const tumbleTargetVelocityY =
+        leaf.descentSpeed *
+        motionScale *
+        (1.04 + Math.sin(leaf.tumblePhase * 0.83) * 0.075)
+      leaf.velocityY = damp(
+        leaf.velocityY,
+        mix(flutterTargetVelocityY, tumbleTargetVelocityY, leaf.tumbleBlend),
+        1.35,
+        delta,
       )
 
-      const verticalFlutter = 0.86 + Math.cos(flutterPhase * 0.91) * 0.14
       leaf.x += leaf.velocityX * delta
-      leaf.y += leaf.velocityY * verticalFlutter * delta
-      leaf.tumble += leaf.tumbleSpeed * motionScale * delta
-      leaf.rotation +=
-        (leaf.rotationSpeed + windSample.detail * 0.16) * motionScale * delta
+      leaf.y += leaf.velocityY * delta
+
+      const turnDirection =
+        -Math.sign(Math.sin(leaf.flutterPhase) || 1) * leaf.lateralDirection
+      const glideVelocityScale = Math.max(8, leaf.flutterAmplitude * phaseRate)
+      const glideLean = clamp(leaf.velocityX / glideVelocityScale, -1, 1)
+      const flutterRotationTarget =
+        leaf.orientationBias +
+        glideLean * 0.58 +
+        turnDirection * turningStrength * 0.72
+      const tumbleRotationTarget =
+        leaf.orientationBias + leaf.tumblePhase
+      const rotationTarget =
+        flutterRotationTarget +
+        wrapAngle(tumbleRotationTarget - flutterRotationTarget) * leaf.tumbleBlend
+      const rotationError = wrapAngle(rotationTarget - leaf.rotation)
+      leaf.rotationVelocity +=
+        rotationError * mix(8.5, 24, turningStrength) * delta
+      leaf.rotationVelocity *= Math.exp(-mix(5.2, 3.35, turningStrength) * delta)
+      leaf.rotation = wrapAngle(leaf.rotation + leaf.rotationVelocity * delta)
+
+      const flutterRollTarget =
+        Math.sin(leaf.flutterPhase + leaf.secondaryPhase * 0.19) * 0.38 +
+        turnDirection * turningStrength * 1.08
+      const tumbleRollTarget =
+        Math.sin(leaf.tumblePhase * 1.37 + leaf.secondaryPhase) * 1.3
+      const rollTarget = mix(
+        flutterRollTarget,
+        tumbleRollTarget,
+        leaf.tumbleBlend,
+      )
+      leaf.rollVelocity += (rollTarget - leaf.roll) * 9.5 * delta
+      leaf.rollVelocity *= Math.exp(-4.1 * delta)
+      leaf.roll += leaf.rollVelocity * delta
 
       const ground = sourceGround(leaf.source, leaf.x)
       if (leaf.y >= ground) {
+        const landingRandom =
+          leaf.flow === 'sky-canopy' ? skyCanopyRandom : random
         leaf.y = ground
         leaf.landed = true
         leaf.landingAge = 0
-        leaf.velocityX *= 0.24
-        leaf.rotation += mix(-0.18, 0.18, random())
+        leaf.velocityX *= 0.3
+        leaf.velocityY = 0
+        leaf.landingRotationTarget = wrapAngle(
+          leaf.rotation + mix(-0.28, 0.28, landingRandom()),
+        )
+        leaf.landingRollTarget = mix(-0.14, 0.14, landingRandom())
       }
     }
 
     const drawLeaf = (leaf: FallingLeaf) => {
       const fadeIn = smoothstep(0, leaf.fadeIn, leaf.age)
       const landingFade = leaf.landed
-        ? 1 - smoothstep(leaf.landingDuration * 0.48, leaf.landingDuration, leaf.landingAge)
+        ? 1 - smoothstep(leaf.landingDuration * 0.7, leaf.landingDuration, leaf.landingAge)
         : 1
-      const face = Math.cos(leaf.tumble)
-      const foreshortening = leaf.landed ? 0.3 : 0.16 + Math.abs(face) * 0.84
+      const face = Math.cos(leaf.roll)
+      const foreshortening = leaf.landed ? 0.3 : 0.24 + Math.abs(face) * 0.76
       const width = leaf.length * leaf.widthRatio
       const depthOpacity = mix(0.68, 1, clamp((leaf.depth - 0.72) / 0.42, 0, 1))
 
@@ -494,7 +927,12 @@ export function FallingLeaves({ readingActive, wind }: FallingLeavesProps) {
       context.translate(leaf.x, leaf.y)
       context.rotate(leaf.rotation)
       context.scale(1, (face < 0 ? -1 : 1) * foreshortening)
-      context.globalAlpha = leaf.opacity * fadeIn * landingFade * depthOpacity
+      context.globalAlpha =
+        leaf.opacity *
+        fadeIn *
+        landingFade *
+        depthOpacity *
+        (face < 0 ? 0.9 : 1)
       context.drawImage(
         sprites[leaf.sprite],
         -leaf.length * 0.5,
@@ -511,12 +949,43 @@ export function FallingLeaves({ readingActive, wind }: FallingLeavesProps) {
       readingBlend +=
         (readingTarget - readingBlend) * (1 - Math.exp(-0.52 * delta))
 
-      const dueSources = SOURCE_ZONES.filter(
-        (source) => simulationTime >= nextEmissionAt[source.id],
-      ).sort((first, second) => nextEmissionAt[first.id] - nextEmissionAt[second.id])
-      for (const source of dueSources) {
-        if (leaves.length >= (debugDense ? 10 : MAX_ACTIVE_LEAVES)) break
-        scheduleEmission(source)
+      const maximumLeaves = debugDense
+        ? FALLING_LEAF_CONTROLS.maxActiveLeaves + 6
+        : FALLING_LEAF_CONTROLS.maxActiveLeaves
+      let ambientLeafCount = 0
+      let skyCanopyLeafCount = 0
+      let skyCanopyBandLeafCount = 0
+      for (const leaf of leaves) {
+        if (leaf.flow === 'ambient') {
+          ambientLeafCount += 1
+          continue
+        }
+        skyCanopyLeafCount += 1
+        if (
+          !leaf.landed &&
+          leaf.y < FALLING_LEAF_CONTROLS.skyCanopyFlow.skyBandBottom
+        ) {
+          skyCanopyBandLeafCount += 1
+        }
+      }
+      while (pendingSpawns[0]?.at <= simulationTime) {
+        const pending = pendingSpawns.shift()
+        if (pending && ambientLeafCount < maximumLeaves) {
+          spawnLeaf(pending.source, pending.point)
+          ambientLeafCount += 1
+        }
+      }
+      if (
+        simulationTime >= nextEmissionAt &&
+        ambientLeafCount + pendingSpawns.length < maximumLeaves
+      ) {
+        scheduleEmission(maximumLeaves, ambientLeafCount)
+      }
+      if (
+        simulationTime >= nextSkyCanopyEmissionAt &&
+        skyCanopyLeafCount < FALLING_LEAF_CONTROLS.skyCanopyFlow.maxActiveLeaves
+      ) {
+        scheduleSkyCanopyEmission(skyCanopyBandLeafCount)
       }
 
       const windTime = wind.time(time)
@@ -528,7 +997,7 @@ export function FallingLeaves({ readingActive, wind }: FallingLeavesProps) {
           (leaf.landed && leaf.landingAge >= leaf.landingDuration) ||
           leaf.x < -40 ||
           leaf.x > SOURCE_WIDTH + 40 ||
-          leaf.age > 24
+          leaf.age > 52
         ) {
           leaves.splice(index, 1)
         }
@@ -537,10 +1006,9 @@ export function FallingLeaves({ readingActive, wind }: FallingLeavesProps) {
 
     const draw = () => {
       context.clearRect(0, 0, RENDER_WIDTH, RENDER_HEIGHT)
-      const orderedLeaves = [...leaves].sort((first, second) => first.depth - second.depth)
       context.save()
       context.scale(RENDER_SCALE, RENDER_SCALE)
-      for (const leaf of orderedLeaves) drawLeaf(leaf)
+      for (const leaf of leaves) drawLeaf(leaf)
       context.restore()
       updateDiagnostics(false)
     }
@@ -574,9 +1042,9 @@ export function FallingLeaves({ readingActive, wind }: FallingLeavesProps) {
         stop()
         clear()
       } else {
-        for (const source of SOURCE_ZONES) {
-          nextEmissionAt[source.id] = simulationTime + mix(0.35, 1.1, random())
-        }
+        nextEmissionAt = simulationTime + mix(0.35, 1.1, random())
+        nextSkyCanopyEmissionAt =
+          simulationTime + mix(0.18, 0.5, skyCanopyRandom())
         requestFrame()
       }
     }

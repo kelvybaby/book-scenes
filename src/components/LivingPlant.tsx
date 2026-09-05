@@ -62,9 +62,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.08,
     stiffness: 2.25,
     damping: 2.65,
-    maxBend: 6.8,
+    maxBend: 8.5,
     swayPhase: -0.62,
-    swaySpeed: 0.64,
+    swaySpeed: 0.82,
     bendExponent: 1.68,
     curvatureResponse: 0.032,
     renderOrder: 1,
@@ -81,9 +81,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.11,
     stiffness: 2.45,
     damping: 2.72,
-    maxBend: 8,
+    maxBend: 10,
     swayPhase: 0.25,
-    swaySpeed: 0.7,
+    swaySpeed: 0.9,
     bendExponent: 1.62,
     curvatureResponse: 0.035,
     renderOrder: 2,
@@ -100,9 +100,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.1,
     stiffness: 2.72,
     damping: 2.88,
-    maxBend: 7.2,
+    maxBend: 9,
     swayPhase: 0.94,
-    swaySpeed: 0.74,
+    swaySpeed: 0.95,
     bendExponent: 1.74,
     curvatureResponse: 0.03,
     renderOrder: 3,
@@ -119,9 +119,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.08,
     stiffness: 3.05,
     damping: 3.08,
-    maxBend: 7,
+    maxBend: 8.8,
     swayPhase: 1.58,
-    swaySpeed: 0.61,
+    swaySpeed: 0.78,
     bendExponent: 1.72,
     curvatureResponse: 0.028,
     renderOrder: 4,
@@ -138,9 +138,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.12,
     stiffness: 3.18,
     damping: 3.16,
-    maxBend: 6.4,
+    maxBend: 8,
     swayPhase: 2.1,
-    swaySpeed: 0.8,
+    swaySpeed: 1.02,
     bendExponent: 1.82,
     curvatureResponse: 0.025,
     renderOrder: 5,
@@ -157,9 +157,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.14,
     stiffness: 2.18,
     damping: 2.55,
-    maxBend: 9.5,
+    maxBend: 11.9,
     swayPhase: 2.72,
-    swaySpeed: 0.77,
+    swaySpeed: 0.99,
     bendExponent: 1.58,
     curvatureResponse: 0.036,
     renderOrder: 6,
@@ -176,9 +176,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.13,
     stiffness: 3.35,
     damping: 3.25,
-    maxBend: 6,
+    maxBend: 7.5,
     swayPhase: 3.36,
-    swaySpeed: 0.84,
+    swaySpeed: 1.08,
     bendExponent: 1.88,
     curvatureResponse: 0.022,
     renderOrder: 7,
@@ -195,9 +195,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.09,
     stiffness: 2.62,
     damping: 2.86,
-    maxBend: 7.4,
+    maxBend: 9.3,
     swayPhase: 3.92,
-    swaySpeed: 0.69,
+    swaySpeed: 0.88,
     bendExponent: 1.7,
     curvatureResponse: 0.03,
     renderOrder: 8,
@@ -214,9 +214,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.11,
     stiffness: 3.05,
     damping: 3.12,
-    maxBend: 6.2,
+    maxBend: 7.8,
     swayPhase: 4.48,
-    swaySpeed: 0.78,
+    swaySpeed: 1,
     bendExponent: 1.86,
     curvatureResponse: 0.024,
     renderOrder: 9,
@@ -233,9 +233,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.035,
     stiffness: 1.62,
     damping: 3.38,
-    maxBend: 4.1,
+    maxBend: 5.6,
     swayPhase: 0.4,
-    swaySpeed: 0.48,
+    swaySpeed: 0.72,
     bendExponent: 1.38,
     curvatureResponse: 0.016,
     renderOrder: 20,
@@ -252,9 +252,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.04,
     stiffness: 1.78,
     damping: 3.46,
-    maxBend: 4.5,
-    swayPhase: 1.32,
-    swaySpeed: 0.52,
+    maxBend: 6.1,
+    swayPhase: 0.46,
+    swaySpeed: 0.72,
     bendExponent: 1.42,
     curvatureResponse: 0.018,
     renderOrder: 21,
@@ -271,9 +271,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.045,
     stiffness: 1.84,
     damping: 3.52,
-    maxBend: 4.7,
-    swayPhase: 2.18,
-    swaySpeed: 0.54,
+    maxBend: 6.4,
+    swayPhase: 0.51,
+    swaySpeed: 0.72,
     bendExponent: 1.44,
     curvatureResponse: 0.017,
     renderOrder: 22,
@@ -290,9 +290,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.045,
     stiffness: 2.02,
     damping: 3.62,
-    maxBend: 3.8,
-    swayPhase: 2.88,
-    swaySpeed: 0.57,
+    maxBend: 5.1,
+    swayPhase: 0.43,
+    swaySpeed: 0.72,
     bendExponent: 1.48,
     curvatureResponse: 0.014,
     renderOrder: 23,
@@ -309,9 +309,9 @@ const PARTS: readonly PlantPartDefinition[] = [
     detailResponse: 0.05,
     stiffness: 2.08,
     damping: 3.7,
-    maxBend: 3.7,
-    swayPhase: 3.54,
-    swaySpeed: 0.59,
+    maxBend: 5,
+    swayPhase: 0.48,
+    swaySpeed: 0.72,
     bendExponent: 1.5,
     curvatureResponse: 0.013,
     renderOrder: 24,
@@ -456,6 +456,7 @@ export function LivingPlant({
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     let disposed = false
+    let visible = false
     let frame: number | null = null
     let lastTime = performance.now()
     let swayClock = 0
@@ -481,6 +482,7 @@ export function LivingPlant({
       if (
         frame === null &&
         renderer &&
+        visible &&
         !reducedMotion.matches &&
         document.visibilityState === 'visible'
       ) {
@@ -553,6 +555,15 @@ export function LivingPlant({
         void initialise()
       }
     }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        visible = entry?.isIntersecting ?? false
+        if (visible) requestFrame()
+        else stop()
+      },
+      { threshold: 0.01 },
+    )
 
     const initialise = async () => {
       if (initialising || renderer) return
@@ -637,6 +648,7 @@ export function LivingPlant({
       }
     }
 
+    observer.observe(canvas)
     document.addEventListener('visibilitychange', handleVisibilityChange)
     reducedMotion.addEventListener('change', handleMotionPreference)
     void initialise()
@@ -644,6 +656,7 @@ export function LivingPlant({
     return () => {
       disposed = true
       stop()
+      observer.disconnect()
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       reducedMotion.removeEventListener('change', handleMotionPreference)
       for (const rig of leafRigs) {

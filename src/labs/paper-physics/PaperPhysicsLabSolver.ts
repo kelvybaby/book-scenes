@@ -10,6 +10,7 @@ import {
 } from '../../motion/PaperSheet'
 import {
   createWindProfile,
+  RELEASE_CONTACT_TIME,
   sampleWindMoments,
   WindField,
   type WindProfile,
@@ -414,6 +415,7 @@ export class PaperPhysicsLabSolver {
 
   private readonly environment: PaperEnvironment
   private readonly profile: WindProfile
+  private readonly windProfile: WindProfile
   private readonly wind: WindField
   private readonly windSample: WindSample = { x: 0, y: 0, z: 0 }
   private readonly frame: PaperFrame = {
@@ -470,12 +472,14 @@ export class PaperPhysicsLabSolver {
     settings: PaperLabSettings = { ...DEFAULT_PAPER_LAB_SETTINGS },
     controller?: PaperSheet,
     ambientWind: AmbientWindField = sceneAmbientWind,
+    windSeed = seed,
   ) {
     this.seed = seed >>> 0
     this.environment = environment
     this.settings = { ...settings }
     this.profile = createWindProfile(this.seed)
-    this.wind = new WindField(this.profile, ambientWind)
+    this.windProfile = createWindProfile(windSeed)
+    this.wind = new WindField(this.windProfile, ambientWind, this.profile)
     this.controller =
       controller ??
       new PaperSheet(
@@ -486,6 +490,8 @@ export class PaperPhysicsLabSolver {
         8,
         6,
         sceneAmbientWind,
+        null,
+        windSeed,
       )
     this.coarse = createPaperSimulationMesh(8, 6)
     this.visualGeometry = createPaperVisualMesh()
@@ -846,7 +852,7 @@ export class PaperPhysicsLabSolver {
       frame.center.x,
       frame.center.y,
       frame.center.z,
-      phaseTime,
+      this.released && motion.releaseTime > 0 ? motion.releaseTime : phaseTime,
       this.released ? 'release' : 'reading',
       motion.releaseTime,
       this.windSample,
@@ -917,7 +923,11 @@ export class PaperPhysicsLabSolver {
     }
     this.impactMemory *= Math.exp(-responseDelta * 4.8)
 
-    const moments = sampleWindMoments(this.profile, motion.releaseTime)
+    const deformationProfile =
+      this.released && motion.releaseTime > RELEASE_CONTACT_TIME
+        ? this.windProfile
+        : this.profile
+    const moments = sampleWindMoments(deformationProfile, motion.releaseTime)
     const coupledAirSpeed = relativeAirSpeed * clamp(this.settings.windCoupling, 0, 2)
     const targetWindStrength = smoothstep(72, 320, coupledAirSpeed)
     const targetFlutterActivation = smoothstep(145, 335, coupledAirSpeed)
@@ -1273,11 +1283,34 @@ export class PaperPhysicsLabSolver {
               this.environment.cameraDistance - world.z,
               this.environment.cameraDistance * 0.2,
             )
-          // Maintain approximately one rendered pixel of paper above the
-          // painted road. Apply it only to vertices that cross the skin; curls
+          // Apply the visual skin only to vertices that reach the road; curls
           // and airborne portions remain completely unconstrained.
-          const visualClearance = clamp(1 / projectionScale, 0.7, 1.35)
-          const contactTransition = visualClearance * 1.35
+          const projectedPixel = clamp(1 / projectionScale, 0.7, 1.35)
+          const landingBlend = smoothstep(
+            RELEASE_CONTACT_TIME,
+            RELEASE_CONTACT_TIME + 0.48,
+            state.releaseTime,
+          )
+          const contactAnchorU = this.windProfile.plan.catchX < 0.5 ? 0.08 : 0.92
+          const contactAnchorDistance = Math.abs(u - contactAnchorU)
+          const nearEdgeWeight = smoothstep(0.66, 1, v)
+          const shortContactWeight =
+            nearEdgeWeight * (1 - smoothstep(0.055, 0.19, contactAnchorDistance))
+          const nearEdgeRise =
+            nearEdgeWeight *
+            smoothstep(0.075, 0.72, contactAnchorDistance) *
+            projectedPixel *
+            0.92
+          // Preserve the established one-pixel skin through the authored fall.
+          // After handoff, one short section of the camera-facing edge can make
+          // genuine contact while the remainder keeps a shallow visible arc.
+          const visualClearance = mix(
+            projectedPixel,
+            projectedPixel * 0.045 + nearEdgeRise,
+            landingBlend,
+          )
+          const contactTransition =
+            projectedPixel * mix(1.35, 0.14, landingBlend * shortContactWeight)
           const transitionCutoff = contactTransition * 3
           const clearanceDelta = signedDistance - visualClearance
           if (clearanceDelta < transitionCutoff) {

@@ -1,6 +1,6 @@
 # Under the Almond Trees layer separation
 
-These prompts produced the provisional source material for the first clean canopy-depth proof. Generated pixels are used only as concealed underpainting; the visible canopy layer retains exact pixels from the upstream Study O visual master, while Study Q remains the current static frame and runtime base.
+These archived prompts describe individual asset-generation jobs, not current runtime requirements. The [asset pipeline](../../docs/ASSET_PIPELINE.md) owns registration and repair rules. They produced the provisional source material for the first clean canopy-depth proof. Generated pixels are used only as concealed underpainting; the visible canopy layer retains exact pixels from the upstream Study O visual master, while Study Q remains the current static frame and runtime base.
 
 ## Hidden background repair
 
@@ -44,7 +44,7 @@ Use the supplied Study Q as an exact registration reference. On the identical 16
 Use the supplied Study Q as the exact edit target. Remove only the lower-right foreground plant cluster identified in the reference while preserving the original 1672×941 crop and registration. Reconstruct the small area hidden directly behind it as a continuation of the adjacent dry park ground and dense low plant base. Keep the road, curb, path, house, figures, canopy, lighting, palette, texture, and every unrelated pixel unchanged. This is concealed underpainting, not a redesigned scene. No new objects, blur, text, or watermark.
 ```
 
-Runtime rule: the generated matte is only a location guide. Rebuild the alpha from Study Q, retain Study Q RGB for every visible pixel, verify an exact rest composite, and reject the layer if either maximum shift reveals a duplicate edge. The foreground multiplier is `0.34` horizontally and `0.28` vertically relative to the canopy offset; do not create an independent motion loop.
+This historical translation proof used foreground multipliers of `0.34` horizontally and `0.28` vertically relative to the canopy offset. The later deforming-plant rig supersedes that motion treatment; source registration and exact resting reconstruction still apply.
 
 ## Far-right flowering plant underpainting — Study Q
 

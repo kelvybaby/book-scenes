@@ -44,6 +44,8 @@ Do not ask one reference to define the entire project.
 | [GSAP ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/) | Timeline and scroll orchestration | Use only for justified, measurable choreography | Generic pinned sections and stock reveal sequences | 2026-07-31 |
 | [Motion scroll tools](https://motion.dev/docs/scroll) | Lightweight UI motion | Native scroll-linked behavior where appropriate | Applying scroll animation to every element | 2026-07-31 |
 | [View Transition API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) | Scene navigation | Maintain spatial continuity between a scene object and destination | Browser-default spectacle without narrative logic | 2026-07-31 |
+| [Cornell Falling Paper and Seeds](https://dragonfly.tam.cornell.edu/falling_paper.html) | Falling-leaf aerodynamic motion | Couple side-to-side gliding with attitude changes at turning points; distinguish gentle flutter from rotation-and-drift tumble | Exact laboratory geometry, water-tank scale, force model, and recorded trajectories | 2026-08-29 |
+| Reader-supplied butterfly screen recording, kept outside Git | Butterfly readability and local flight cadence | Warm cream-yellow paired-wing silhouettes; varied scale; short bursts, abrupt local course changes, near-pauses, and active flapping inside a vegetation volume | Its stylized roadside environment, camera, foliage, composition, and exact population paths | 2026-08-30 |
 
 ## Workflow references from MengTo/Skills
 
@@ -61,3 +63,16 @@ These are procedural references, not dependencies to install wholesale.
 ## Reference-selection rule
 
 Before adding a reference, state the question it answers. If it only says “make it look like this,” it is not yet a useful project reference.
+
+## Under the Almond Trees audio sources
+
+These CC0 field recordings are edited into compact runtime assets. Their geography is not treated as documentary evidence for the unnamed Caribbean setting; they provide provisional material texture and timing for the scene's sound mix.
+
+| Recording | Runtime role | Runtime edit | Licence | Date checked |
+| --- | --- | --- | --- | --- |
+| Reader-owned cicada recording, `cicada sound.mp4`, original kept outside Git | Intermittent cicada call phrases | Initial silence removed; six phrases play with variable quiet gaps | Reader-owned and supplied for this project | 2026-09-02 |
+| [Residential Street Ambience Quiet Birds — mzui](https://freesound.org/people/mzui/sounds/135074/) | Quiet bird bed and occasional stronger calls | Original 69-second loop for the bed; a separate full-length accent derivative uses a `650 Hz` high-pass, spectral noise reduction, and `5.2 kHz` ceiling before selected call clusters play every 8–12 seconds | CC0 | 2026-09-02 |
+| [Sweet Wind in Autumn Foliage — bruno.auzet](https://freesound.org/people/bruno.auzet/sounds/718411/) | Continuous soft foliage wind | 90-second loop with independent ambient gusts; after page contact, gain and rate follow released-page X speed | CC0 | 2026-09-02 |
+| [Page Turn (2) — OwlStorm](https://freesound.org/people/OwlStorm/sounds/151221/) | First book-opening gesture | Full gesture, filtered and levelled | CC0 | 2026-09-02 |
+| [Writing with Fountain Pen Nib — black_trillium](https://freesound.org/people/black_trillium/sounds/397282/) | First-time word reveals on both passage leaves | Stable 20-second writing section, filtered and levelled as a quiet continuous bed | CC0 | 2026-09-03 |
+| [05-ChasquidoPapeles.wav — juan9826](https://freesound.org/people/juan9826/sounds/429904/) | Wind-driven paper flutter during the initial fall and post-contact road travel | Louder paper-flap sections assembled into a compact loop; pre-contact gain and rate are fixed, then X speed and lift control the response | CC0 | 2026-09-03 |

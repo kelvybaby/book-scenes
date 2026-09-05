@@ -2,6 +2,7 @@ import { useEffect, useRef, type RefObject } from 'react'
 import * as THREE from 'three'
 import type { PassageLeaf } from '../content/passages'
 import type { AmbientWindField } from '../motion/AmbientWindField'
+import type { PageFlutterSoundMotion } from './SceneSoundscape'
 import { RELEASE_CONTACT_TIME } from '../motion/WindField'
 import {
   PAPER_SCRIPTED_RELEASE_PITCH,
@@ -20,10 +21,13 @@ type WindPageProps = {
   anchorRef: RefObject<HTMLElement | null>
   originRef: RefObject<HTMLElement | null>
   passage: PassageLeaf
+  releasedWordOpacitiesRef: RefObject<readonly number[]>
   state: 'opening' | 'open' | 'closing'
+  windSeed: number
   onReady: (ready: boolean) => void
   onOpened: () => void
   onGone: () => void
+  onReleaseMotion: (motion: PageFlutterSoundMotion) => void
 }
 
 const clamp = (value: number, minimum: number, maximum: number) =>
@@ -53,6 +57,7 @@ const GHOST_PAGE_OPACITY = {
 } as const
 
 const OPENING_MOTION = {
+  appearanceDelay: 0.75,
   duration: 3,
   revealDuration: 0.46,
   startScale: 0.066,
@@ -115,21 +120,17 @@ const sampleBoundary = (points: readonly RoadBoundaryPoint[], x: number) => {
 }
 
 const PRODUCTION_PAPER_MOTION: PaperReleaseMotionTuning = {
-  horizontalWindScale: 0.5,
+  horizontalWindScale: 2.4,
   horizontalDrag: 0.7,
-  shortGustStrength: 0.58,
-  stallStrength: 0.5,
   depthWindScale: 0.025,
-  depthGustStrength: 0.055,
   depthDrag: 1.8,
-  verticalWindScale: 1,
+  verticalWindScale: 1.8,
   verticalDrag: 0,
   preserveScriptedVelocity: true,
   contactSolverProvidesSupport: true,
   preserveRoadContactPosition: true,
   perVertexGroundContact: true,
   aerodynamicAreaReferenceHeight: 46,
-  gustLiftAcceleration: 130,
   edgeOnStabilityStrength: 42,
   edgeOnStabilityDamping: 9,
   handoffForceRampDuration: 0.5,
@@ -141,29 +142,36 @@ const PRODUCTION_PAPER_DEFORMATION: Partial<PaperLabSettings> = {
   broadBendEdgeEmphasis: 0.24,
   broadBendIrregularity: 0.75,
   broadBendLateralBias: 0.72,
+  edgeFlutterAmplitude: 0.058,
   perVertexGroundContact: true,
 }
 
-const wrapLines = (
+type IndexedWord = {
+  index: number
+  text: string
+}
+
+const wrapIndexedWords = (
   context: CanvasRenderingContext2D,
   text: string,
   maxWidth: number,
 ) => {
-  const words = text.split(' ')
-  const lines: string[] = []
-  let line = ''
+  const words = text.trim().split(/\s+/)
+  const lines: IndexedWord[][] = []
+  let line: IndexedWord[] = []
 
-  for (const word of words) {
-    const candidate = line ? `${line} ${word}` : word
-    if (line && context.measureText(candidate).width > maxWidth) {
+  words.forEach((word, index) => {
+    const candidate = [...line, { index, text: word }]
+    const candidateText = candidate.map((item) => item.text).join(' ')
+    if (line.length > 0 && context.measureText(candidateText).width > maxWidth) {
       lines.push(line)
-      line = word
+      line = [{ index, text: word }]
     } else {
       line = candidate
     }
-  }
+  })
 
-  if (line) lines.push(line)
+  if (line.length > 0) lines.push(line)
   return lines
 }
 
@@ -356,6 +364,7 @@ const createQuoteTexture = (
   passage: PassageLeaf,
   aspect: number,
   layout: QuoteLayout,
+  wordOpacities?: readonly number[],
 ) => {
   const { width, height } = textureSize(passage, aspect)
   const canvas = document.createElement('canvas')
@@ -371,7 +380,7 @@ const createQuoteTexture = (
   context.shadowColor = 'rgba(255, 246, 218, 0.18)'
   context.shadowBlur = width * 0.0008
   context.textBaseline = 'alphabetic'
-  context.textAlign = passage.treatment === 'aphorism' ? 'center' : 'left'
+  context.textAlign = 'left'
 
   const displayScale = width / layout.displayWidth
   const fontSize = layout.fontSize * displayScale
@@ -381,28 +390,29 @@ const createQuoteTexture = (
   const textWidth = layout.width * displayScale
   const textHeight = layout.height * displayScale
 
-  if (passage.treatment === 'aphorism') {
-    context.font = `italic 500 ${fontSize}px "EB Garamond", Georgia, serif`
-    const lines = wrapLines(context, passage.text, textWidth)
-    const renderedHeight = (lines.length - 1) * lineHeight + fontSize
-    const firstBaseline = textTop + (textHeight - renderedHeight) / 2 + fontSize * 0.79
-    const textCenter = textLeft + textWidth / 2
-    lines.forEach((line, index) => {
-      const baseline = firstBaseline + index * lineHeight
-      context.strokeText(line, textCenter, baseline)
-      context.fillText(line, textCenter, baseline)
+  context.font = `${passage.treatment === 'aphorism' ? 'italic ' : ''}500 ${fontSize}px "EB Garamond", Georgia, serif`
+  const lines = wrapIndexedWords(context, passage.text, textWidth)
+  const renderedHeight = (lines.length - 1) * lineHeight + fontSize
+  const firstBaseline = textTop + (textHeight - renderedHeight) / 2 + fontSize * 0.79
+  const spaceWidth = context.measureText(' ').width
+
+  lines.forEach((line, lineIndex) => {
+    const lineWidth = context.measureText(line.map((word) => word.text).join(' ')).width
+    let cursorX =
+      passage.treatment === 'aphorism'
+        ? textLeft + (textWidth - lineWidth) / 2
+        : textLeft
+    const baseline = firstBaseline + lineIndex * lineHeight
+
+    line.forEach((word, wordIndex) => {
+      context.globalAlpha = clamp(wordOpacities?.[word.index] ?? 1, 0, 1)
+      context.strokeText(word.text, cursorX, baseline)
+      context.fillText(word.text, cursorX, baseline)
+      cursorX += context.measureText(word.text).width
+      if (wordIndex < line.length - 1) cursorX += spaceWidth
     })
-  } else {
-    context.font = `500 ${fontSize}px "EB Garamond", Georgia, serif`
-    const lines = wrapLines(context, passage.text, textWidth)
-    const renderedHeight = (lines.length - 1) * lineHeight + fontSize
-    const firstBaseline = textTop + (textHeight - renderedHeight) / 2 + fontSize * 0.79
-    lines.forEach((line, index) => {
-      const baseline = firstBaseline + index * lineHeight
-      context.strokeText(line, textLeft, baseline)
-      context.fillText(line, textLeft, baseline)
-    })
-  }
+  })
+  context.globalAlpha = 1
 
   const texture = new THREE.CanvasTexture(canvas)
   texture.colorSpace = THREE.SRGBColorSpace
@@ -415,6 +425,7 @@ const createScrawlTexture = (
   passage: PassageLeaf,
   aspect: number,
   layout: QuoteLayout,
+  wordOpacities?: readonly number[],
 ) => {
   const { width, height } = textureSize(passage, aspect)
   const canvas = document.createElement('canvas')
@@ -431,7 +442,7 @@ const createScrawlTexture = (
   const textWidth = layout.width * displayScale
   const textHeight = layout.height * displayScale
   context.font = `${passage.treatment === 'aphorism' ? 'italic ' : ''}500 ${fontSize}px "EB Garamond", Georgia, serif`
-  const lines = wrapLines(context, passage.text, textWidth)
+  const lines = wrapIndexedWords(context, passage.text, textWidth)
   const renderedHeight = (lines.length - 1) * lineHeight + fontSize
   const firstBaseline = textTop + (textHeight - renderedHeight) / 2 + fontSize * 0.79
   const textCenter = textLeft + textWidth / 2
@@ -441,7 +452,16 @@ const createScrawlTexture = (
   context.lineCap = 'round'
 
   lines.forEach((line, index) => {
-    const measuredWidth = Math.min(context.measureText(line).width, textWidth)
+    const lineText = line.map((word) => word.text).join(' ')
+    const measuredWidth = Math.min(context.measureText(lineText).width, textWidth)
+    const visibleWidth = Math.min(
+      measuredWidth,
+      line.reduce((width, word, wordIndex) => {
+        const opacity = clamp(wordOpacities?.[word.index] ?? 1, 0, 1)
+        const spacing = wordIndex < line.length - 1 ? context.measureText(' ').width : 0
+        return width + (context.measureText(word.text).width + spacing) * opacity
+      }, 0),
+    )
     const startX = passage.treatment === 'aphorism' ? textCenter - measuredWidth / 2 : textLeft
     const baseline = firstBaseline + index * lineHeight
     const strokeY = baseline - fontSize * 0.27
@@ -454,7 +474,8 @@ const createScrawlTexture = (
 
     for (const [from, to] of strokes) {
       const x1 = startX + measuredWidth * from
-      const x2 = startX + measuredWidth * to
+      const x2 = Math.min(startX + measuredWidth * to, startX + visibleWidth)
+      if (x2 <= x1) continue
       const bow = ((index % 4) - 1.5) * 0.7
       context.beginPath()
       context.moveTo(x1, strokeY)
@@ -475,15 +496,19 @@ export function WindPage({
   anchorRef,
   originRef,
   passage,
+  releasedWordOpacitiesRef,
   state,
+  windSeed,
   onReady,
   onOpened,
   onGone,
+  onReleaseMotion,
 }: WindPageProps) {
   const hostRef = useRef<HTMLDivElement>(null)
   const stateRef = useRef(state)
   const onOpenedRef = useRef(onOpened)
   const onGoneRef = useRef(onGone)
+  const onReleaseMotionRef = useRef(onReleaseMotion)
 
   useEffect(() => {
     stateRef.current = state
@@ -496,6 +521,10 @@ export function WindPage({
   useEffect(() => {
     onGoneRef.current = onGone
   }, [onGone])
+
+  useEffect(() => {
+    onReleaseMotionRef.current = onReleaseMotion
+  }, [onReleaseMotion])
 
   useEffect(() => {
     const host = hostRef.current
@@ -512,6 +541,7 @@ export function WindPage({
     let disposed = false
     let lastTime = performance.now()
     let releaseStarted = false
+    let hasTouchedGround = false
     let goneReported = false
     let openingActive = false
     let openingReported = false
@@ -544,6 +574,8 @@ export function WindPage({
     let pageWorldY = 0
     let originWorldX = 0
     let originWorldY = 0
+    let quoteLayout: QuoteLayout | null = null
+    let textureAspect = 1
 
     const environmentFor = (viewportWidth: number, viewportHeight: number): PaperEnvironment => {
       const anchorBounds = anchor.getBoundingClientRect()
@@ -686,7 +718,7 @@ export function WindPage({
           sheet.positions.set(openingPose)
           sheet.previous.set(openingPose)
         }
-        solidMaterial.opacity = 1
+        solidMaterial.opacity = 0
         ghostMaterial.opacity = 0
         quoteMaterial.opacity = 0
         scrawlMaterial.opacity = 0
@@ -694,7 +726,9 @@ export function WindPage({
 
       if (openingActive && openingPose && pageGroup) {
         openingTime += delta
-        const progress = clamp(openingTime / OPENING_MOTION.duration, 0, 1)
+        const visualOpeningTime = Math.max(0, openingTime - OPENING_MOTION.appearanceDelay)
+        const openingVisible = visualOpeningTime > 0
+        const progress = clamp(visualOpeningTime / OPENING_MOTION.duration, 0, 1)
         const travel = smoothstep(0, 1, progress)
         const arc = Math.sin(progress * Math.PI)
         const gustTail = (1 - travel) * 2.2
@@ -710,11 +744,11 @@ export function WindPage({
           const normalizedY = row / sheet.segmentsY
           const travellingWave = Math.sin(
             normalizedX * Math.PI * 2.15 -
-              openingTime * OPENING_MOTION.rippleCycles * Math.PI +
+              visualOpeningTime * OPENING_MOTION.rippleCycles * Math.PI +
               normalizedY * Math.PI * 0.62,
           )
           const crossWave = Math.sin(
-            normalizedY * Math.PI * 1.28 + openingTime * Math.PI * 1.54,
+            normalizedY * Math.PI * 1.28 + visualOpeningTime * Math.PI * 1.54,
           )
           const broadRipple = travellingWave * 0.76 + crossWave * 0.24
 
@@ -736,11 +770,15 @@ export function WindPage({
         pageGroup.scale.setScalar(scale)
         pageGroup.rotation.set(
           arc * 0.045,
-          mix(-0.11, 0, travel) + rippleEnvelope * Math.sin(openingTime * 2.7) * 0.028,
-          mix(-0.105, 0, travel) + rippleEnvelope * Math.sin(openingTime * 2.15) * 0.022,
+          mix(-0.11, 0, travel) +
+            rippleEnvelope * Math.sin(visualOpeningTime * 2.7) * 0.028,
+          mix(-0.105, 0, travel) +
+            rippleEnvelope * Math.sin(visualOpeningTime * 2.15) * 0.022,
         )
-        solidMaterial.opacity = 1 - smoothstep(0.18, 0.93, progress)
-        ghostMaterial.opacity = smoothstep(0.12, 0.92, progress)
+        solidMaterial.opacity = openingVisible
+          ? 1 - smoothstep(0.18, 0.93, progress)
+          : 0
+        ghostMaterial.opacity = openingVisible ? smoothstep(0.12, 0.92, progress) : 0
         quoteMaterial.opacity = 0
         host.dataset.openingTime = openingTime.toFixed(2)
         host.dataset.openingProgress = progress.toFixed(3)
@@ -757,7 +795,10 @@ export function WindPage({
           sheet.previous.set(openingPose)
         }
 
-        if (openingTime >= OPENING_MOTION.duration + OPENING_MOTION.revealDuration) {
+        if (
+          visualOpeningTime >=
+          OPENING_MOTION.duration + OPENING_MOTION.revealDuration
+        ) {
           openingActive = false
           ghostMaterial.opacity = 1
           solidMaterial.opacity = 0
@@ -775,6 +816,32 @@ export function WindPage({
       } else {
         if (stateRef.current === 'closing' && !releaseStarted) {
           releaseStarted = true
+          if (quoteLayout) {
+            const frozenOpacities = releasedWordOpacitiesRef.current
+            const frozenQuoteTexture = createQuoteTexture(
+              passage,
+              textureAspect,
+              quoteLayout,
+              frozenOpacities,
+            )
+            const frozenScrawlTexture = createScrawlTexture(
+              passage,
+              textureAspect,
+              quoteLayout,
+              frozenOpacities,
+            )
+            quoteTexture?.dispose()
+            scrawlTexture?.dispose()
+            quoteTexture = frozenQuoteTexture
+            scrawlTexture = frozenScrawlTexture
+            quoteMaterial.map = frozenQuoteTexture
+            scrawlMaterial.map = frozenScrawlTexture
+            quoteMaterial.needsUpdate = true
+            scrawlMaterial.needsUpdate = true
+            host.dataset.frozenWrittenWords = String(
+              frozenOpacities.filter((opacity) => opacity >= 0.99).length,
+            )
+          }
           prototypeSolver.beginRelease()
           activatePrototypeGeometry()
         }
@@ -789,6 +856,7 @@ export function WindPage({
       }
 
       const motion = sheet.getMotionState()
+      let flutterLift = 0
       if (releaseStarted) {
         quoteMaterial.opacity = mix(
           1,
@@ -802,6 +870,8 @@ export function WindPage({
         solidMaterial.opacity = smoothstep(0.12, 1.62, motion.releaseTime)
         const groundHeight = sheet.getGroundHeight(motion.averageX, motion.averageZ)
         const clearance = Math.max(0, motion.averageY - groundHeight)
+        if (motion.contactRatio > 0.01) hasTouchedGround = true
+        flutterLift = hasTouchedGround ? smoothstep(3, 14, clearance) : 0
         host.dataset.releaseTime = motion.releaseTime.toFixed(2)
         host.dataset.contact = motion.contactRatio.toFixed(2)
         host.dataset.pageWidth = motion.width.toFixed(1)
@@ -864,6 +934,19 @@ export function WindPage({
         host.clientWidth / 2 + (pageWorldX + motion.averageX) * perspectiveScale
       const projectedCenterY =
         host.clientHeight / 2 - (pageWorldY + motion.averageY) * perspectiveScale
+      if (releaseStarted) {
+        onReleaseMotionRef.current({
+          active: true,
+          afterGroundContact: hasTouchedGround,
+          horizontalPosition: clamp(
+            (projectedCenterX / host.clientWidth) * 2 - 1,
+            -1,
+            1,
+          ),
+          horizontalSpeed: smoothstep(7, 82, Math.abs(motion.velocityX)),
+          lift: flutterLift,
+        })
+      }
       const projectedRadius =
         Math.hypot(motion.width, motion.height) * 0.65 * Math.abs(perspectiveScale) + 4
       const gentleDriftExitedViewport =
@@ -875,6 +958,13 @@ export function WindPage({
           projectedCenterY + projectedRadius < 0)
       if (releaseStarted && gentleDriftExitedViewport && !goneReported) {
         goneReported = true
+        onReleaseMotionRef.current({
+          active: false,
+          afterGroundContact: hasTouchedGround,
+          horizontalPosition: 0,
+          horizontalSpeed: 0,
+          lift: 0,
+        })
         onGoneRef.current()
         return
       }
@@ -883,6 +973,13 @@ export function WindPage({
       const rightBoundary = host.clientWidth / 2 - pageWorldX + 28
       if (releaseStarted && sheet.isBeyond(rightBoundary) && !goneReported) {
         goneReported = true
+        onReleaseMotionRef.current({
+          active: false,
+          afterGroundContact: hasTouchedGround,
+          horizontalPosition: 0,
+          horizontalSpeed: 0,
+          lift: 0,
+        })
         onGoneRef.current()
         return
       }
@@ -924,6 +1021,7 @@ export function WindPage({
           17,
           ambientWind,
           PRODUCTION_PAPER_MOTION,
+          windSeed,
         )
         prototypeSolver = new PaperPhysicsLabSolver(
           anchorBounds.width,
@@ -933,6 +1031,7 @@ export function WindPage({
           { ...APPROVED_PAPER_LAB_PRESET, ...PRODUCTION_PAPER_DEFORMATION },
           sheet,
           ambientWind,
+          windSeed,
         )
         openingPose = new Float32Array(sheet.positions)
         scene = new THREE.Scene()
@@ -955,7 +1054,7 @@ export function WindPage({
         const displayLineHeight = passageStyle
           ? Number.parseFloat(passageStyle.lineHeight)
           : displayFontSize * (passage.treatment === 'aphorism' ? 1.4 : 1.42)
-        const quoteLayout: QuoteLayout = {
+        quoteLayout = {
           displayWidth: anchorBounds.width,
           left: passageBounds ? passageBounds.left - anchorBounds.left : anchorBounds.width * 0.14,
           top: passageBounds ? passageBounds.top - anchorBounds.top : anchorBounds.height * 0.16,
@@ -964,11 +1063,11 @@ export function WindPage({
           fontSize: displayFontSize,
           lineHeight: displayLineHeight,
         }
-        const aspect = anchorBounds.width / anchorBounds.height
-        ghostTexture = createPaperTexture(passage, aspect, false)
-        solidTexture = createPaperTexture(passage, aspect, true)
-        quoteTexture = createQuoteTexture(passage, aspect, quoteLayout)
-        scrawlTexture = createScrawlTexture(passage, aspect, quoteLayout)
+        textureAspect = anchorBounds.width / anchorBounds.height
+        ghostTexture = createPaperTexture(passage, textureAspect, false)
+        solidTexture = createPaperTexture(passage, textureAspect, true)
+        quoteTexture = createQuoteTexture(passage, textureAspect, quoteLayout)
+        scrawlTexture = createScrawlTexture(passage, textureAspect, quoteLayout)
         ghostMaterial = new THREE.MeshStandardMaterial({
           map: ghostTexture,
           transparent: true,
@@ -1086,6 +1185,13 @@ export function WindPage({
 
     return () => {
       disposed = true
+      onReleaseMotionRef.current({
+        active: false,
+        afterGroundContact: hasTouchedGround,
+        horizontalPosition: 0,
+        horizontalSpeed: 0,
+        lift: 0,
+      })
       onReady(false)
       document.removeEventListener('visibilitychange', handleVisibilityChange)
       resizeObserver?.disconnect()
@@ -1105,7 +1211,15 @@ export function WindPage({
       renderer?.dispose()
       renderer?.domElement.remove()
     }
-  }, [ambientWind, anchorRef, onReady, originRef, passage])
+  }, [
+    ambientWind,
+    anchorRef,
+    onReady,
+    originRef,
+    passage,
+    releasedWordOpacitiesRef,
+    windSeed,
+  ])
 
   return <div className="wind-page" ref={hostRef} aria-hidden="true" />
 }

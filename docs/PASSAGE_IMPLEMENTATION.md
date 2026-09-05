@@ -42,7 +42,7 @@ Keep layout measurement and rendering out of `PaperSheet` and `WindField`. Keep 
 
 ## State model
 
-`App` currently owns five states:
+`App` currently owns four states:
 
 | State | Behavior |
 | --- | --- |
@@ -50,9 +50,8 @@ Keep layout measurement and rendering out of `PaperSheet` and `WindField`. Keep 
 | `opening` | The authored page flight runs and scene parallax settles. |
 | `open` | The quotation and folio controls are available. |
 | `closing` | The wind release runs and the quotation fades. |
-| `gone` | The page renderer is removed and temporary replay controls are available. |
 
-The replay and restore controls are prototype aids, not final scene choreography.
+The fully open page releases when the reader clicks or taps outside it or presses `Escape`. Once the release leaves the scene, the interaction and its foreground sound state reset, focus returns to the book, and the book can be opened again. Dismissal does not interrupt the opening animation, and no replay or restore controls are exposed.
 
 ## Motion responsibilities
 
@@ -70,7 +69,7 @@ The intended reading state is visually stable enough for comfortable reading. Th
 
 The release inherits the open page's live world-space vertices, pose, and velocity so shrinking and descent remain continuous. Condensation and descent overlap so the page never pauses at the high anchor. It rotates quickly during the first falling beat with its lower edge toward the camera and its upper edge farther away and slightly raised; the pitch remains shallow enough that the face never collapses into an edge line. The scripted descent and segmented solver share one pitched support height, and the final landing ease settles the complete projected footprint into the middle of the visible road before the wind handoff. After contact, a projected corridor traced from both painted road edges affects only contacting vertices. Seeded gusts can then lift separated portions naturally while friction and damping remain local to contact. `PaperSheet` retains trajectory, material response, and contact ownership; the segmented solver supplies the paper's broad bending, curling, and edge flutter; `WindPage` updates their shared geometry and controls material opacity.
 
-The production release uses the approved deterministic wind seed directly. It has no runtime solver, motion-variant, or tuning query parameters.
+The release uses fixed production motion settings plus a per-release `windSeed` supplied by `App`. `?windSeed=<integer>` fixes that variation for comparisons; normal openings choose a fresh seed. Do not confuse the fixed production preset with identical motion on every release.
 
 ## Paper-model limitations
 
@@ -101,24 +100,15 @@ Do not expand Three.js into a scene-wide renderer without a separate bounded pro
 
 ## Open work
 
-- Replace the rejected rectangular book cue with a noticeable cue that belongs to the painted scene.
+- Review the current localized book-light cue in the painted scene; the earlier rectangular cue was rejected.
 - Decide whether the final settled page is completely static or merely imperceptibly alive; legibility takes precedence.
-- Inspect the authored descent and post-handoff shape correction across representative seeds; tune only if the leaf still reads as cloth or as an unnaturally rigid board.
+- Inspect the authored descent and post-handoff shape correction with a fixed `windSeed`; tune paper behavior from rendered evidence.
 - Refine landing and ground contact only where rendered inspection shows the leaf leaving the approved roadway corridor.
-- Obtain visual approval for the opening and release across representative fixed seeds.
-- Add the final close contract, including `Escape`, unambiguous outside click where appropriate, and focus return to the book.
+- Present the opening and release for visual review after tuning.
 - Verify touch, mobile composition, reduced motion, hidden-tab behavior, asset requests, console output, and renderer cleanup.
 
 ## Tuning and verification
 
-Change one or two variables per rendered comparison. Use a fixed seed while tuning a specific beat, then inspect multiple seeds before approval. Keep the static HTML fallback intelligible after every change.
+Use a small group of variables per rendered comparison and fix `windSeed` while tuning a beat. Check additional seeds only when changing behavior that actually varies by seed; do not add tuning controls just to run QA.
 
-Run the scripts that exist in `package.json`:
-
-```text
-npm run typecheck
-npm run lint
-npm run build
-```
-
-Then inspect the complete interaction at desktop and mobile widths, including keyboard and touch activation, both folios, reduced motion, focus behavior, failed assets, console errors, hidden-tab recovery, and cleanup after the page leaves.
+Follow [repository verification](../AGENTS.md#verification). For passage behavior changes, inspect opening, both folios, dismissal, and reopening, including the affected input, fallback, focus, and cleanup paths. Visual approval concerns acceptance of the result, not permission to carry out requested refinements.

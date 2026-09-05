@@ -1,0 +1,72 @@
+.butterfly-model-study {
+  position: fixed;
+  inset: 0;
+  overflow: auto;
+  padding: 34px clamp(18px, 5vw, 72px);
+  color: #eee7d4;
+  background: #121912;
+}
+
+.butterfly-model-study > header,
+.butterfly-model-study > section {
+  width: min(1180px, 100%);
+  margin-inline: auto;
+}
+
+.butterfly-model-study > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.butterfly-model-study h1,
+.butterfly-model-study p {
+  margin: 0;
+}
+
+.butterfly-model-study h1 {
+  font-size: clamp(1.7rem, 3vw, 2.45rem);
+  font-weight: 400;
+}
+
+.butterfly-model-study p {
+  color: rgba(238, 231, 212, 0.62);
+}
+
+.butterfly-model-study > section {
+  min-width: 880px;
+  border: 1px solid rgba(238, 231, 212, 0.16);
+  background: #192319;
+}
+
+.butterfly-model-study__canvas {
+  display: block;
+  width: 100%;
+  height: 430px;
+}
+
+.butterfly-model-study__labels {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 0 12px 18px;
+  color: rgba(238, 231, 212, 0.55);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+@media (max-width: 960px) {
+  .butterfly-model-study {
+    padding-inline: 18px;
+  }
+
+  .butterfly-model-study > header {
+    display: block;
+  }
+
+  .butterfly-model-study > header p {
+    margin-top: 5px;
+  }
+}

@@ -52,10 +52,7 @@ export type PaperMotionState = {
 export type PaperReleaseMotionTuning = {
   horizontalWindScale: number
   horizontalDrag: number
-  shortGustStrength: number
-  stallStrength: number
   depthWindScale?: number
-  depthGustStrength?: number
   depthDrag?: number
   verticalWindScale?: number
   verticalDrag?: number
@@ -64,7 +61,6 @@ export type PaperReleaseMotionTuning = {
   preserveRoadContactPosition?: boolean
   perVertexGroundContact?: boolean
   aerodynamicAreaReferenceHeight?: number
-  gustLiftAcceleration?: number
   edgeOnStabilityStrength?: number
   edgeOnStabilityDamping?: number
   handoffForceRampDuration?: number
@@ -131,8 +127,9 @@ export class PaperSheet {
     segmentsY = 14,
     ambientWind?: AmbientWindField,
     releaseMotionTuning: PaperReleaseMotionTuning | null = null,
+    windSeed = seed,
   ) {
-    this.profile = createWindProfile(seed)
+    this.profile = createWindProfile(windSeed)
     this.wind = new WindField(this.profile, ambientWind)
     this.releaseMotionTuning = releaseMotionTuning
     this.stabilityFacingSign = Math.cos(this.profile.phase) < 0 ? -1 : 1
@@ -149,6 +146,7 @@ export class PaperSheet {
     this.releasePose = new Float32Array(vertexCount * 3)
     this.contactMask = new Uint8Array(vertexCount)
 
+    const surfaceProfile = createWindProfile(seed)
     for (let row = 0; row <= segmentsY; row += 1) {
       for (let column = 0; column <= segmentsX; column += 1) {
         const vertex = this.index(column, row)
@@ -156,9 +154,9 @@ export class PaperSheet {
         const x = (column / segmentsX - 0.5) * width
         const y = (0.5 - row / segmentsY) * height
         const seedCurve =
-          Math.sin((column / segmentsX) * Math.PI + this.profile.phase * 0.13) *
-          Math.sin((row / segmentsY) * Math.PI * 2 + this.profile.phase) *
-          (1.55 + (this.profile.flutter - 1) * 1.8)
+          Math.sin((column / segmentsX) * Math.PI + surfaceProfile.phase * 0.13) *
+          Math.sin((row / segmentsY) * Math.PI * 2 + surfaceProfile.phase) *
+          (1.55 + (surfaceProfile.flutter - 1) * 1.8)
         this.positions[offset] = x
         this.positions[offset + 1] = y
         this.positions[offset + 2] = seedCurve
@@ -350,7 +348,6 @@ export class PaperSheet {
 
     this.acceleration.fill(0)
     this.addAerodynamicForces(delta)
-    this.addReleaseGuidance(delta)
     this.addEdgeOnStabilityTorque(delta)
     this.integrate(delta)
 
@@ -784,7 +781,7 @@ export class PaperSheet {
     const ny = uz * vx - ux * vz
     const nz = ux * vy - uy * vx
     const moments = sampleWindMoments(this.profile, this.releaseTime)
-    const activity = Math.max(moments.actionFlutter, moments.edgeCatch, moments.finalSweep)
+    const activity = Math.max(moments.actionFlutter, moments.edgeCatch)
     const rippleAmplitude = 0.16 + activity * (0.52 + this.profile.flutter * 0.18)
     const shapeBlend =
       (1 - Math.exp(-delta * (50 - activity * 10))) *
@@ -836,7 +833,6 @@ export class PaperSheet {
   private addAerodynamicForces(delta: number) {
     const moments = sampleWindMoments(this.profile, this.releaseTime)
     const releaseStrength = this.phase === 'release' ? smoothstep(0.2, 1.8, moments.time) : 0
-    const finalSweep = this.phase === 'release' ? moments.finalSweep : 0
     const actionFlutter = this.phase === 'release' ? moments.actionFlutter : 0
     const condensationAir = this.phase === 'release' ? moments.condensationAir : 0
     const aerodynamicActivity = Math.max(actionFlutter, condensationAir)
@@ -847,8 +843,7 @@ export class PaperSheet {
     const tangentialDrag =
       0.16 +
       releaseStrength * 0.14 +
-      condensationAir * 1.05 +
-      finalSweep * (0.72 + this.profile.strength * 0.12)
+      condensationAir * 1.05
     const horizontalWindMultiplier = this.horizontalWindMultiplier()
     const depthWindMultiplier = this.depthWindMultiplier()
     const verticalWindScale =
@@ -927,22 +922,8 @@ export class PaperSheet {
         normalCoefficient *
         aerodynamicAreaScale
       const forceX = (nx * pressure + relativeX * tangentialDrag) * forceResponse
-      const expectedTriangleArea =
-        (this.environment.targetWidth * this.environment.targetHeight) /
-        this.triangles.length
-      const areaResponse = clamp(area / Math.max(expectedTriangleArea, 0.001), 0.45, 1.8)
-      const liftEnvelope =
-        moments.firstLift +
-        moments.exitAttack * 0.46 +
-        moments.exitSecond * 0.28 +
-        moments.exitTail * 0.16
-      const gustLift =
-        (this.releaseMotionTuning?.gustLiftAcceleration ?? 0) *
-        liftEnvelope *
-        Math.abs(ny) *
-        areaResponse
       const forceY =
-        (ny * pressure + relativeY * tangentialDrag + gustLift) * forceResponse
+        (ny * pressure + relativeY * tangentialDrag) * forceResponse
       const forceZ = (nz * pressure + relativeZ * tangentialDrag) * forceResponse
 
       for (const offset of [ia, ib, ic]) {
@@ -958,25 +939,7 @@ export class PaperSheet {
       return 1
     }
 
-    const age = this.releaseTime - WIND_HANDOFF
-    // Narrow sine lobes provide deterministic, temporally coherent gusts and
-    // stalls. They alter only post-contact horizontal translation; the
-    // scripted descent, lift, deformation wind, and simulation clock are left
-    // untouched.
-    const shortGust = Math.pow(
-      Math.max(0, Math.sin(age * 2.35 + this.profile.phase * 0.43)),
-      4,
-    )
-    const stall = Math.pow(
-      Math.max(0, Math.sin(age * 1.31 + this.profile.phase * 0.71 + 2.2)),
-      3,
-    )
-    const tuning = this.releaseMotionTuning
-    return (
-      tuning.horizontalWindScale *
-      (1 + shortGust * tuning.shortGustStrength) *
-      (1 - stall * tuning.stallStrength)
-    )
+    return this.releaseMotionTuning.horizontalWindScale
   }
 
   private depthWindMultiplier() {
@@ -990,11 +953,7 @@ export class PaperSheet {
       return 1
     }
 
-    const age = this.releaseTime - WIND_HANDOFF
-    const signedGust =
-      Math.sin(age * 1.17 + this.profile.phase * 0.61) *
-      (0.62 + Math.sin(age * 0.43 + this.profile.phase * 0.29) * 0.38)
-    return tuning.depthWindScale + signedGust * (tuning.depthGustStrength ?? 0)
+    return tuning.depthWindScale
   }
 
   private postHandoffResponse(duration?: number) {
@@ -1100,112 +1059,16 @@ export class PaperSheet {
     }
   }
 
-  private addReleaseGuidance(delta: number) {
-    if (this.phase !== 'release') return
-    const state = this.getMotionState()
-    const moments = sampleWindMoments(this.profile, this.releaseTime)
-    const settlingTime = this.releaseTime
-    const handoffHold = 1 - smoothstep(0.42, 0.82, settlingTime)
-    const fallGuide =
-      smoothstep(0.55, 1.9, settlingTime) *
-      (1 - smoothstep(2.95, 3.25, settlingTime))
-    const settlingTurn =
-      smoothstep(1.82, 2.2, settlingTime) *
-      (1 - smoothstep(2.78, 3.08, settlingTime))
-    const plan = this.profile.plan
-    const secondaryAge = settlingTime - plan.secondaryGustTime
-    const wanderingCatch =
-      plan.personality === 'wandering'
-        ? smoothstep(0.32, 0.54, secondaryAge) *
-          (1 - smoothstep(0.78, 1.08, secondaryAge)) *
-          plan.flutterAmplitude *
-          0.58
-        : 0
-    const localizedCatch = Math.max(moments.edgeCatch, wanderingCatch)
-    const landingCenterY = this.environment.groundY + this.environment.targetHeight * 0.44
-    const targetScale = this.currentScale()
-    const vertexCount = this.positions.length / 3
-    for (let vertex = 0; vertex < vertexCount; vertex += 1) {
-      const offset = vertex * 3
-      const row = Math.floor(vertex / (this.segmentsX + 1))
-      const column = vertex % (this.segmentsX + 1)
-      const normalizedX = column / this.segmentsX
-      const normalizedY = row / this.segmentsY
-      const edgeDistance = Math.min(
-        normalizedX,
-        1 - normalizedX,
-        normalizedY,
-        1 - normalizedY,
-      )
-      this.acceleration[offset] += -state.averageX * 0.34 * handoffHold
-      this.acceleration[offset + 2] += -state.averageZ * 2.4 * handoffHold
-      this.acceleration[offset + 1] += (landingCenterY - state.averageY) * 8 * fallGuide
-      this.acceleration[offset + 2] +=
-        (-this.environment.targetHeight * 0.16 - state.averageZ) * 2.1 * settlingTurn
-      this.acceleration[offset + 2] -= Math.pow(1 - normalizedY, 1.35) * 118 * settlingTurn
-      this.acceleration[offset + 1] -= Math.pow(1 - normalizedY, 1.7) * 18 * settlingTurn
-
-      const cornerLead = (1 - normalizedX) * normalizedY
-      this.acceleration[offset + 1] -=
-        cornerLead * smoothstep(0.55, 1.7, settlingTime) * 7.5
-
-      if (localizedCatch > 0) {
-        const useWanderingCatch = wanderingCatch > moments.edgeCatch
-        const catchX = useWanderingCatch ? Math.min(0.96, plan.catchX + 0.28) : plan.catchX
-        const catchY = useWanderingCatch ? 1 - plan.catchY : plan.catchY
-        const distanceX = (normalizedX - catchX) * 1.12
-        const distanceY = normalizedY - catchY
-        const source = Math.exp(-(distanceX * distanceX + distanceY * distanceY) * 13.5)
-        const edgeBand = 1 - smoothstep(0.045, 0.27, edgeDistance)
-        const travelPhase = secondaryAge * plan.flutterFrequency * Math.PI * 2
-        const travellingWave =
-          0.5 +
-          Math.sin(
-            (normalizedX - catchX) * Math.PI * 2.2 +
-              (normalizedY - catchY) * Math.PI * 1.35 -
-              travelPhase,
-          ) *
-            0.5
-        const catchWeight =
-          localizedCatch *
-          (source * 0.72 + edgeBand * travellingWave * 0.28) *
-          this.postHandoffResponse(this.releaseMotionTuning?.handoffForceRampDuration)
-        this.acceleration[offset] += catchWeight * 8 * plan.lateralAcceleration
-        this.acceleration[offset + 1] += catchWeight * (8 + plan.flutterAmplitude * 11)
-        this.acceleration[offset + 2] +=
-          catchWeight * (travellingWave - 0.42) * (54 + plan.flutterAmplitude * 42)
-      }
-
-      if (settlingTime < 2.1) {
-        const restX = this.rest[offset] * targetScale.x
-        const restY = this.rest[offset + 1] * targetScale.y
-        this.acceleration[offset + 2] +=
-          Math.sin(normalizedX * Math.PI * 1.4 + normalizedY * 5.2 + this.simulationTime * 3.1) *
-          smoothstep(0.25, 1.8, this.releaseTime) *
-          9
-        this.acceleration[offset] += (restX - (this.positions[offset] - state.averageX)) * 0.035
-        this.acceleration[offset + 1] +=
-          (restY - (this.positions[offset + 1] - state.averageY)) * 0.022
-      }
-    }
-
-    void delta
-  }
-
   private integrate(delta: number) {
-    const moments = sampleWindMoments(this.profile, this.releaseTime)
-    const finalSweep = this.phase === 'release' ? moments.finalSweep : 0
-    const midLull = this.phase === 'release' ? moments.midLull : 0
-    const damping =
-      this.phase === 'reading' ? 0.986 : 0.981 + finalSweep * 0.012 - midLull * 0.018
+    const damping = this.phase === 'reading' ? 0.986 : 0.983
     const deltaSquared = delta * delta
     const vertexCount = this.positions.length / 3
     const maximumSpeed =
-      this.phase === 'reading' ? 55 : 145 + finalSweep * 720 * this.profile.strength
+      this.phase === 'reading' ? 55 : 420
     const gravity =
       this.phase === 'reading'
         ? 8.5
-        : mix(17.2, 95, smoothstep(0.48, 0.92, this.releaseTime)) + midLull * 8
+        : mix(17.2, 95, smoothstep(0.48, 0.92, this.releaseTime))
 
     for (let vertex = 0; vertex < vertexCount; vertex += 1) {
       const offset = vertex * 3
@@ -1312,7 +1175,6 @@ export class PaperSheet {
     const ny = normalY / normalLength
     const nz = normalZ / normalLength
     const moments = sampleWindMoments(this.profile, this.releaseTime)
-    const finalSweep = moments.finalSweep
     const perVertexRelease = this.releaseMotionTuning?.perVertexGroundContact === true
 
     for (let vertex = 0; vertex < vertexCount; vertex += 1) {
@@ -1350,11 +1212,8 @@ export class PaperSheet {
           const tangentialX = velocityX - nx * normalVelocity
           const tangentialY = velocityY - ny * normalVelocity
           const tangentialZ = velocityZ - nz * normalVelocity
-          const contactSlip =
-            moments.firstLift * clamp((this.profile.strength - 0.72) / 0.65, 0, 1)
-          const friction = countContact
-            ? mix(mix(0.72, 0.18, finalSweep), 0.24, contactSlip)
-            : 0
+          const contactSlip = smoothstep(0.025, 0.18, moments.actionFlutter)
+          const friction = countContact ? mix(0.72, 0.08, contactSlip) : 0
           const retainedTangent = 1 - friction
           this.previous[offset] =
             this.positions[offset] - tangentialX * retainedTangent
@@ -1374,9 +1233,8 @@ export class PaperSheet {
         this.previous[offset + 2] += nz * normalVelocity * 0.91
       }
 
-      const contactSlip =
-        moments.firstLift * clamp((this.profile.strength - 0.72) / 0.65, 0, 1)
-      const friction = mix(mix(0.72, 0.18, finalSweep), 0.24, contactSlip)
+      const contactSlip = smoothstep(0.025, 0.18, moments.actionFlutter)
+      const friction = mix(0.72, 0.08, contactSlip)
       this.previous[offset] = this.positions[offset] - velocityX * (1 - friction)
       this.previous[offset + 2] = this.positions[offset + 2] - velocityZ * (1 - friction)
       if (countContact) this.contactCount += 1

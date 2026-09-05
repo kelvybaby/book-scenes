@@ -1,8 +1,8 @@
 # Park concept studies
 
-## Purpose
+## Archive status
 
-Generate three materially different visual treatments for the same narrative scene. These are composition and art-direction studies, not final runtime assets.
+The comparison phase is complete. These prompts record historical concept studies, not current instructions to regenerate the scene. Study O is the upstream master and Study Q is the approved blockout; the [scene specification](../../docs/scenes/under-the-almond-trees.md) owns current requirements. Reuse prompts only for the requested asset, adapting superseded details such as figure visibility.
 
 The studies should remain comparable: a wide third-person view from within the park toward Fermina's house, Florentino consciously visible as a small unreadable silhouette on a bench, Fermina small and partially screened while seated at the doorway beneath substantial almond growth, vegetation establishing depth, an open house and courtyard across the square, and bright late-afternoon light.
 
@@ -80,16 +80,6 @@ Evaluate each study on:
 8. Character ambiguity and consistency
 9. Colour and lighting durability over prolonged viewing
 10. Ability to support interaction without becoming busy
-
-## Iteration rule
-
-After selecting a leading study, change only one or two variables per iteration. Prefer targeted repair or regional regeneration over replacing the approved composition.
-
-## Archive status
-
-The comparison phase is complete. Study O remains the upstream visual master, while Study Q below is the approved final blockout for the passage-interaction stage. See `design/concepts/README.md` for the compact version ledger and `docs/DECISIONS.md` for the decision rationale.
-
-Future prompts should target bounded production needs—layer extensions, transparent interactive objects, mobile crops, or local repairs—not regenerate the approved full scene.
 
 ## Study Q — bounded park-ground redesign
 
