@@ -149,6 +149,47 @@
   text-transform: uppercase;
 }
 
+.book-model-lab__reset-button {
+  position: absolute;
+  z-index: 3;
+  right: max(24px, env(safe-area-inset-right));
+  bottom: max(28px, env(safe-area-inset-bottom));
+  padding: 5px 0;
+  border: 0;
+  border-bottom: 1px solid transparent;
+  border-radius: 0;
+  color: rgba(239, 230, 210, 0.62);
+  background: none;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transition:
+    color 180ms ease,
+    border-color 180ms ease,
+    opacity 320ms ease;
+}
+
+.book-model-lab--ready .book-model-lab__reset-button {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.book-model-lab__reset-button:hover:not(:disabled),
+.book-model-lab__reset-button:focus-visible {
+  color: rgba(255, 247, 228, 0.98);
+  border-bottom-color: rgba(239, 230, 210, 0.62);
+  outline: none;
+}
+
+.book-model-lab__reset-button:disabled {
+  opacity: 0;
+  cursor: default;
+}
+
 .book-model-lab--ready:hover .book-model-lab__instructions,
 .book-model-lab--ready:focus-visible .book-model-lab__instructions {
   opacity: 1;
@@ -196,18 +237,13 @@
   }
 }
 
-@media (pointer: coarse) {
-  .book-model-lab {
-    touch-action: pan-y;
-  }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .book-model-lab__fallback,
   .book-model-lab__canvas-host,
   .book-model-lab__instructions,
   .book-model-lab__nav,
-  .book-model-lab__page-button {
+  .book-model-lab__page-button,
+  .book-model-lab__reset-button {
     transition: none;
   }
 }

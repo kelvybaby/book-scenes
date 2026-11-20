@@ -17,5 +17,5 @@ export const loveInTheTimeOfCholeraBookModel: BookModelAsset = {
   objectName: 'ReaderCopy_LoveInTheTimeOfCholera',
   ariaLabel: "Three-dimensional model of the reader's copy of Love in the Time of Cholera",
   fallbackAlt: "The reader's worn copy of Love in the Time of Cholera resting slightly open",
-  physicalLeafCount: 8,
+  physicalLeafCount: 5,
 }

@@ -17,11 +17,11 @@ Blender illumination map × existing receiver mask × adjustable intensity
 ## Structure
 
 - `dapple-light-poc.blend` — generated Blender 5.2 Eevee scene
-- `preview/frames/` — the complete 240-frame grayscale loop
 - `preview/representative-frames/` — 0%, 25%, 50%, and 75% phases
 - `preview/contact-sheet.png` — the four representative phases
 - `preview/difference-amplified.png` — amplified 0%-to-25% change
-- `preview/dapple-light-preview.mp4` — 768 × 384, 30 fps, 8-second loop
+
+The full 240-frame sequence and the 768 × 384, 30 fps MP4 were review exports.
 
 The generator lives at `scripts/blender/build_dapple_light.py`.
 
@@ -35,6 +35,8 @@ From the repository root:
 ```
 
 ## Build and render the review preview
+
+The command writes the full sequence to `preview/frames/` and the encoded loop to `preview/dapple-light-preview.mp4`.
 
 ```sh
 /Applications/Blender.app/Contents/MacOS/Blender \

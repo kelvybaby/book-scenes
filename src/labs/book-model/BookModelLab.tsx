@@ -6,71 +6,31 @@ import {
   type BookModelAsset,
 } from '../../content/bookModels'
 import {
-  createBookPageRig,
-  disposeBookPageRig,
-  poseBookPage,
-  type BookPageRig,
-} from './BookPageRig'
+  createEarlyPageOpenRig,
+  type EarlyPageOpenRig,
+} from './EarlyPageOpenRig'
 import './bookModelLab.css'
 
-// Blender's Z-up coordinates are exported to glTF's Y-up coordinates.
-const STARTING_CAMERA = new THREE.Vector3(0.235, 0.225, 0.275)
-const LOOK_TARGET = new THREE.Vector3(0, 0.003, -0.002)
-const OPEN_CAMERA = new THREE.Vector3(0.254, 0.306, 0.372)
-const OPEN_LOOK_TARGET = new THREE.Vector3(-0.0635, 0.006, -0.002)
-const ROTATION_PER_PIXEL = 0.008
+// Present the Blender-authored book upright in a conventional Y-up model
+// viewer. These camera values are the original inspection views transformed
+// through the same fixed quarter-turn as the book.
+const STARTING_CAMERA = new THREE.Vector3(0.235, -0.275, 0.225)
+const LOOK_TARGET = new THREE.Vector3(0, 0.002, 0.003)
+// Same azimuth/elevation as the approved IMG_2862 Blender camera, translated
+// so the procedural gutter sits on the closed model's authored spine.
+const OPEN_CAMERA = new THREE.Vector3(-0.0307, -0.4255, 0.2338)
+const OPEN_LOOK_TARGET = new THREE.Vector3(-0.0635, 0.005, 0.0006)
 const KEY_ROTATION = Math.PI / 14
-const COVER_TURN_SECONDS = 1.35
-const PAGE_TURN_SECONDS = 1.55
-const PAGE_STACK_SPACING = 0.0002
-const FRONT_COVER_NAME = 'FrontCover_AnimationReady'
-const PAGE_TEMPLATE_NAME = 'FrontLoosePage_01_AnimationReady'
-const PAGE_BLOCK_NAME = 'PageBlock_ClosedShell'
-const ORIGINAL_FRONT_LEAVES = [
-  'FrontLoosePage_01_AnimationReady',
-  'FrontLoosePage_02_AnimationReady',
-  'FrontLoosePage_03_AnimationReady',
-  'HeroPage_Title_AnimationReady',
-] as const
+const TURN_RESPONSE = 5.8
+const MAX_TURN_ERROR = 0.29
+const TURN_SETTLE_EPSILON = 0.00002
+const UPRIGHT_CAMERA_DISTANCE_SCALE = 1.30
+const ORBIT_POLAR_MARGIN = 0.07
+const ORBIT_RADIANS_PER_HEIGHT = Math.PI * 1.5
 
 type LoadState = 'waiting' | 'loading' | 'ready' | 'failed'
 
-type InteractiveBookRig = {
-  pageBlock: BookPageRig
-  cover: BookPageRig
-  leaves: BookPageRig[]
-}
-
-const createSoftShadow = () => {
-  const surface = document.createElement('canvas')
-  surface.width = 256
-  surface.height = 256
-  const context = surface.getContext('2d')
-  if (!context) return null
-
-  const gradient = context.createRadialGradient(128, 128, 8, 128, 128, 122)
-  gradient.addColorStop(0, 'rgba(0, 0, 0, 0.58)')
-  gradient.addColorStop(0.46, 'rgba(0, 0, 0, 0.32)')
-  gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')
-  context.fillStyle = gradient
-  context.fillRect(0, 0, 256, 256)
-
-  const texture = new THREE.CanvasTexture(surface)
-  texture.colorSpace = THREE.SRGBColorSpace
-  const material = new THREE.MeshBasicMaterial({
-    map: texture,
-    transparent: true,
-    opacity: 0.34,
-    depthWrite: false,
-    toneMapped: false,
-  })
-  const geometry = new THREE.PlaneGeometry(0.31, 0.38)
-  const mesh = new THREE.Mesh(geometry, material)
-  mesh.rotation.x = -Math.PI * 0.5
-  mesh.position.set(0.012, -0.015, -0.006)
-  mesh.renderOrder = -1
-  return { mesh, geometry, material, texture }
-}
+type InteractiveBookRig = EarlyPageOpenRig
 
 const disposeMaterial = (material: THREE.Material) => {
   const record = material as THREE.Material & Record<string, unknown>
@@ -81,80 +41,7 @@ const disposeMaterial = (material: THREE.Material) => {
 }
 
 const createInteractiveBookRig = (model: THREE.Group, requestedLeafCount: number) => {
-  const coverTemplate = model.getObjectByName(FRONT_COVER_NAME)
-  const pageTemplate = model.getObjectByName(PAGE_TEMPLATE_NAME)
-  const pageBlockTemplate = model.getObjectByName(PAGE_BLOCK_NAME)
-  if (!coverTemplate || !pageTemplate || !pageBlockTemplate) {
-    throw new Error('The book model is missing its animation-ready cover, page, or page block.')
-  }
-
-  const leafCount = THREE.MathUtils.clamp(Math.round(requestedLeafCount), 1, 10)
-  let pageBlock: BookPageRig | null = null
-  let cover: BookPageRig | null = null
-  const leaves: BookPageRig[] = []
-
-  try {
-    pageBlock = createBookPageRig(pageBlockTemplate, {
-      name: 'InteractivePageBlock',
-      segments: 36,
-      leftHingeY: 0,
-      turnAngle: 0,
-      restingBend: 0.064,
-      turningBend: 0,
-      settledBend: 0,
-      cornerFold: 0,
-    })
-    cover = createBookPageRig(coverTemplate, {
-      name: 'InteractiveFrontCover',
-      segments: 32,
-      turnAngle: Math.PI - 0.12,
-      restingBend: 0,
-      turningBend: 0.13,
-      settledBend: 0.015,
-      cornerFold: 0.035,
-    })
-
-    for (let index = 0; index < leafCount; index += 1) {
-      const unevenness = ((index * 5) % 7 - 3) * 0.00115
-      leaves.push(
-        createBookPageRig(pageTemplate, {
-          name: `InteractiveLeaf_${String(index + 1).padStart(2, '0')}`,
-          segments: 30,
-          rightStackOffset: (leafCount - 1 - index) * PAGE_STACK_SPACING,
-          leftStackOffset: index * PAGE_STACK_SPACING,
-          turnAngle: Math.PI - (0.108 + index * 0.0018),
-          restingBend: 0.068 + unevenness,
-          turningBend: 0.22,
-          settledBend: 0.074 + unevenness,
-          cornerFold: 0.052,
-        }),
-      )
-    }
-  } catch (error) {
-    if (pageBlock) disposeBookPageRig(pageBlock)
-    if (cover) disposeBookPageRig(cover)
-    leaves.forEach(disposeBookPageRig)
-    throw error
-  }
-
-  pageBlockTemplate.visible = false
-  coverTemplate.visible = false
-  for (const name of ORIGINAL_FRONT_LEAVES) {
-    const leaf = model.getObjectByName(name)
-    if (leaf) leaf.visible = false
-  }
-
-  const parent = coverTemplate.parent ?? model
-  parent.add(pageBlock.mesh)
-  parent.add(cover.mesh)
-  poseBookPage(pageBlock, 0, 0)
-  leaves.forEach((rig) => {
-    parent.add(rig.mesh)
-    poseBookPage(rig, 0, 0)
-  })
-
-  poseBookPage(cover, 0)
-  return { pageBlock, cover, leaves } satisfies InteractiveBookRig
+  return createEarlyPageOpenRig(model, requestedLeafCount)
 }
 
 type BookModelLabProps = {
@@ -167,6 +54,7 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
   const hasMovedRef = useRef(false)
   const targetTurnStepRef = useRef(0)
   const requestRenderRef = useRef<() => void>(() => undefined)
+  const resetViewRef = useRef<() => void>(() => undefined)
   const [loadState, setLoadState] = useState<LoadState>('waiting')
   const [hasMoved, setHasMoved] = useState(false)
   const [shouldMount, setShouldMount] = useState(false)
@@ -232,17 +120,23 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
     let interactiveRig: InteractiveBookRig | null = null
     let visible = true
     let currentTurnStep = targetTurnStepRef.current
+    let turnVelocity = 0
+    let turnAccumulator = 0
     let openCameraAmount = currentTurnStep > 0 ? 1 : 0
     let lastFrameTime = performance.now()
-    let currentPitch = 0
-    let currentYaw = 0
-    let targetPitch = 0
-    let targetYaw = 0
+    let animating = false
+    let cameraHasMoved = false
     let dragging = false
     let pointerId: number | null = null
     let previousX = 0
     let previousY = 0
+    let dragX = 0
+    let dragY = 0
     let dragDistance = 0
+    let lastPosedTurnStep = Number.NaN
+    let lastCameraAmount = Number.NaN
+    let portraitDistance = 1
+    let responsiveFov = 29
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     const scene = new THREE.Scene()
@@ -274,14 +168,36 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
     renderer.domElement.setAttribute('aria-hidden', 'true')
     host.appendChild(renderer.domElement)
 
+    const worldUp = new THREE.Vector3(0, 1, 0)
+    const orbitTarget = LOOK_TARGET.clone()
+    const orbitOffset = new THREE.Vector3()
+    const spherical = new THREE.Spherical()
+    const rotateCamera = (horizontalAngle: number, verticalAngle: number) => {
+      // One roll-free turntable for every drag direction, position and length.
+      // Horizontal movement always orbits the spine; vertical movement changes
+      // elevation. Stop just before the poles rather than flipping camera up.
+      orbitOffset.copy(camera.position).sub(orbitTarget)
+      spherical.setFromVector3(orbitOffset)
+      spherical.theta -= horizontalAngle
+      spherical.phi = THREE.MathUtils.clamp(
+        spherical.phi - verticalAngle, ORBIT_POLAR_MARGIN, Math.PI - ORBIT_POLAR_MARGIN,
+      )
+      orbitOffset.setFromSpherical(spherical)
+      camera.position.copy(orbitTarget).add(orbitOffset)
+      camera.up.copy(worldUp)
+      camera.lookAt(orbitTarget)
+      requestRender()
+    }
+
     const bookPivot = new THREE.Group()
     bookPivot.name = 'BookInspectionPivot'
+    // The glTF is authored lying on its back. This single fixed transform puts
+    // the spine on world Y so OrbitControls can use its standard, stable Y-up
+    // orbit while the book itself never changes transform during inspection.
+    bookPivot.rotation.x = Math.PI * 0.5
     scene.add(bookPivot)
 
-    const shadow = createSoftShadow()
-    if (shadow) scene.add(shadow.mesh)
-
-    scene.add(new THREE.HemisphereLight(0xffe6c6, 0x151714, 1.65))
+    scene.add(new THREE.HemisphereLight(0xffe6c6, 0x46392e, 1.65))
     const key = new THREE.DirectionalLight(0xffd5a3, 2.05)
     key.position.set(0.32, 0.42, 0.30)
     scene.add(key)
@@ -291,36 +207,68 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
     const edge = new THREE.DirectionalLight(0xffbb74, 0.54)
     edge.position.set(-0.12, 0.30, -0.32)
     scene.add(edge)
+    const undersideFill = new THREE.DirectionalLight(0xffd4aa, 1.15)
+    undersideFill.position.set(-0.22, -0.34, 0.18)
+    scene.add(undersideFill)
 
     const cameraPosition = new THREE.Vector3()
     const cameraTarget = new THREE.Vector3()
+    const cameraOffset = new THREE.Vector3()
 
     const updateCamera = () => {
-      const width = Math.max(1, host.clientWidth)
-      const height = Math.max(1, host.clientHeight)
-      const aspect = width / height
-      const portraitDistance = THREE.MathUtils.clamp(
-        THREE.MathUtils.mapLinear(aspect, 0.42, 0.92, 2.0, 1),
-        1,
-        2.0,
-      )
       cameraTarget.lerpVectors(LOOK_TARGET, OPEN_LOOK_TARGET, openCameraAmount)
       cameraPosition.lerpVectors(STARTING_CAMERA, OPEN_CAMERA, openCameraAmount)
-      camera.position
-        .copy(cameraPosition)
-        .sub(cameraTarget)
-        .multiplyScalar(portraitDistance)
-        .add(cameraTarget)
-      camera.fov = (aspect < 0.92 ? 37 : 29) + openCameraAmount * 1.5
-      camera.lookAt(cameraTarget)
+      const desiredDistance =
+        cameraPosition.distanceTo(cameraTarget) * portraitDistance * UPRIGHT_CAMERA_DISTANCE_SCALE
+
+      if (cameraHasMoved) {
+        // Preserve the direction chosen by the viewer. Opening/closing and a
+        // responsive resize may change framing, but never reset the orbit.
+        cameraOffset.copy(camera.position).sub(orbitTarget)
+        if (cameraOffset.lengthSq() < 0.000001) {
+          cameraOffset.copy(cameraPosition).sub(cameraTarget)
+        }
+        cameraOffset.setLength(desiredDistance)
+        camera.position.copy(cameraTarget).add(cameraOffset)
+      } else {
+        cameraOffset
+          .copy(cameraPosition)
+          .sub(cameraTarget)
+          .multiplyScalar(portraitDistance * UPRIGHT_CAMERA_DISTANCE_SCALE)
+        camera.position.copy(cameraTarget).add(cameraOffset)
+      }
+      orbitTarget.copy(cameraTarget)
+      camera.fov = responsiveFov + openCameraAmount * 1.5
       camera.updateProjectionMatrix()
+      camera.up.copy(worldUp)
+      camera.lookAt(orbitTarget)
+      lastCameraAmount = openCameraAmount
     }
+
+    const resetView = () => {
+      if (!model) return
+      // Reset to the authored camera for the current reading state without
+      // changing the cover/page position itself.
+      openCameraAmount = targetTurnStepRef.current > 0 ? 1 : 0
+      cameraHasMoved = false
+      camera.up.copy(worldUp)
+      updateCamera()
+      requestRender()
+    }
+
+    resetViewRef.current = resetView
 
     const resize = () => {
       const width = Math.max(1, host.clientWidth)
       const height = Math.max(1, host.clientHeight)
       renderer.setSize(width, height, false)
       camera.aspect = width / height
+      portraitDistance = THREE.MathUtils.clamp(
+        THREE.MathUtils.mapLinear(camera.aspect, 0.42, 0.92, 1.7, 1),
+        1,
+        1.7,
+      )
+      responsiveFov = camera.aspect < 0.92 ? 37 : 29
       updateCamera()
       requestRender()
     }
@@ -328,41 +276,57 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
     const render = (timestamp = performance.now()) => {
       frame = null
       if (disposed || !visible || document.visibilityState !== 'visible') return
-      const delta = Math.min(Math.max((timestamp - lastFrameTime) / 1000, 1 / 240), 1 / 20)
+      // Integrate elapsed time, with bounded catch-up after a long main-thread
+      // stall. Visibility resume resets the clock rather than consuming pause.
+      const delta = Math.max(0, (timestamp - lastFrameTime) / 1000)
       lastFrameTime = timestamp
       let pageMoving = false
+      let cameraMoving = false
 
       if (model) {
         if (reducedMotion.matches) {
-          currentPitch = targetPitch
-          currentYaw = targetYaw
           currentTurnStep = targetTurnStepRef.current
+          turnVelocity = 0
+          turnAccumulator = 0
         } else {
-          currentPitch = THREE.MathUtils.damp(currentPitch, targetPitch, 11, delta)
-          currentYaw = THREE.MathUtils.damp(currentYaw, targetYaw, 11, delta)
-          const remainingTurn = targetTurnStepRef.current - currentTurnStep
-          if (Math.abs(remainingTurn) < 0.000001) {
+          // Fixed time quanta make acceleration independent of display rate.
+          // Each quantum solves a critically damped spring analytically. Limit
+          // its driving error so a queue of rapid clicks does not fling pages;
+          // retargeting preserves velocity and gently brakes a reversal.
+          turnAccumulator += Math.min(delta, 0.25)
+          const quantum = 1 / 120
+          while (turnAccumulator >= quantum) {
+            const error = THREE.MathUtils.clamp(
+              currentTurnStep - targetTurnStepRef.current, -MAX_TURN_ERROR, MAX_TURN_ERROR,
+            )
+            const goal = currentTurnStep - error
+            const decay = Math.exp(-TURN_RESPONSE * quantum)
+            const impulse = turnVelocity + TURN_RESPONSE * error
+            currentTurnStep = goal + (error + impulse * quantum) * decay
+            turnVelocity = (turnVelocity - TURN_RESPONSE * impulse * quantum) * decay
+            // The physical stop bounds the cover and final leaf, including a
+            // reversal issued within a few pixels of either end of the range.
+            const bounded = THREE.MathUtils.clamp(currentTurnStep, 0, lastTurnStep)
+            if (bounded !== currentTurnStep) turnVelocity = 0
+            currentTurnStep = bounded
+            turnAccumulator -= quantum
+          }
+          pageMoving = Math.abs(targetTurnStepRef.current - currentTurnStep) > TURN_SETTLE_EPSILON ||
+            Math.abs(turnVelocity) > TURN_SETTLE_EPSILON
+          if (!pageMoving) {
             currentTurnStep = targetTurnStepRef.current
-          } else {
-            pageMoving = true
-            const turnDuration = currentTurnStep < 1 ? COVER_TURN_SECONDS : PAGE_TURN_SECONDS
-            const travel = Math.min(Math.abs(remainingTurn), delta / turnDuration)
-            currentTurnStep += Math.sign(remainingTurn) * travel
+            turnVelocity = 0
+            turnAccumulator = 0
           }
         }
 
-        if (interactiveRig) {
-          const coverProgress = THREE.MathUtils.clamp(currentTurnStep, 0, 1)
-          const pageOpenness = THREE.MathUtils.smoothstep(coverProgress, 0, 1)
-          poseBookPage(interactiveRig.pageBlock, 0, pageOpenness)
-          poseBookPage(interactiveRig.cover, coverProgress)
-          interactiveRig.leaves.forEach((leaf, index) => {
-            poseBookPage(
-              leaf,
-              THREE.MathUtils.clamp(currentTurnStep - index - 1, 0, 1),
-              pageOpenness,
-            )
-          })
+        if (
+          interactiveRig &&
+          (!Number.isFinite(lastPosedTurnStep) ||
+            Math.abs(currentTurnStep - lastPosedTurnStep) > 0.000001)
+        ) {
+          interactiveRig.pose(currentTurnStep)
+          lastPosedTurnStep = currentTurnStep
         }
 
         const targetOpenAmount = THREE.MathUtils.smoothstep(
@@ -373,25 +337,22 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
         openCameraAmount = reducedMotion.matches
           ? targetOpenAmount
           : THREE.MathUtils.damp(openCameraAmount, targetOpenAmount, 5.4, delta)
-        updateCamera()
-        bookPivot.rotation.set(currentPitch, currentYaw, 0, 'XYZ')
-        if (shadow) {
-          const faceToViewer = Math.abs(Math.cos(currentPitch))
-          shadow.material.opacity = 0.13 + faceToViewer * 0.21
-          const baseScale = 0.92 + (1 - faceToViewer) * 0.16
-          shadow.mesh.scale.set(baseScale * (1 + openCameraAmount * 0.38), baseScale, baseScale)
-          shadow.mesh.position.x = THREE.MathUtils.lerp(0.012, -0.0635, openCameraAmount)
+        cameraMoving = Math.abs(targetOpenAmount - openCameraAmount) > 0.0004
+        if (
+          !Number.isFinite(lastCameraAmount) ||
+          Math.abs(openCameraAmount - lastCameraAmount) > 0.000001
+        ) {
+          updateCamera()
         }
       }
 
+      renderer.domElement.dataset.turnStep = currentTurnStep.toFixed(6)
+      renderer.domElement.dataset.turnVelocity = turnVelocity.toFixed(6)
+      renderer.domElement.dataset.renderCount = String(renderer.info.render.frame + 1)
       renderer.render(scene, camera)
-      if (
-        !reducedMotion.matches &&
-        (pageMoving ||
-          Math.abs(targetPitch - currentPitch) > 0.0004 ||
-          Math.abs(targetYaw - currentYaw) > 0.0004)
-      ) {
-        frame = window.requestAnimationFrame(render)
+      animating = !reducedMotion.matches && (pageMoving || cameraMoving)
+      if (animating) {
+        requestRender()
       }
     }
 
@@ -402,6 +363,9 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
         document.visibilityState === 'visible' &&
         !disposed
       ) {
+        // A fresh input after resting must start with one frame's delta, not
+        // treat time spent idle as animation catch-up.
+        if (!animating) lastFrameTime = performance.now()
         frame = window.requestAnimationFrame(render)
       }
     }
@@ -412,18 +376,24 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
       const target = event.target
       if (
         !model ||
+        dragging ||
+        pointerId !== null ||
+        !event.isPrimary ||
         event.button !== 0 ||
-        (target instanceof Element && target.closest('.book-model-lab__nav'))
+        (target instanceof Element &&
+          target.closest('.book-model-lab__nav, .book-model-lab__reset-button'))
       ) {
         return
       }
       dragging = true
       pointerId = event.pointerId
+      section.setPointerCapture(event.pointerId)
       previousX = event.clientX
       previousY = event.clientY
+      dragX = 0
+      dragY = 0
       dragDistance = 0
       section.focus({ preventScroll: true })
-      section.setPointerCapture(event.pointerId)
       section.classList.add('book-model-lab--dragging')
     }
 
@@ -433,23 +403,31 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
       const deltaY = event.clientY - previousY
       previousX = event.clientX
       previousY = event.clientY
+      dragX += deltaX
+      dragY += deltaY
       dragDistance += Math.hypot(deltaX, deltaY)
-      targetYaw += deltaX * ROTATION_PER_PIXEL
-      targetPitch += deltaY * ROTATION_PER_PIXEL
+      if (dragDistance >= 7) {
+        // Include initial sub-threshold movement once; then use increments so
+        // opening during a grab cannot jump to a stale pointer-down frame.
+        const radians = ORBIT_RADIANS_PER_HEIGHT / Math.max(1, host.clientHeight)
+        rotateCamera(dragX * radians, dragY * radians)
+        dragX = 0
+        dragY = 0
+        cameraHasMoved = true
+      }
       if (!hasMovedRef.current && Math.abs(deltaX) + Math.abs(deltaY) > 2) {
         hasMovedRef.current = true
         setHasMoved(true)
       }
-      requestRender()
     }
 
     const finishDrag = (event: PointerEvent, allowPageTurn: boolean) => {
       if (pointerId !== event.pointerId) return
       const wasClick = dragDistance < 7
+      if (section.hasPointerCapture(event.pointerId)) section.releasePointerCapture(event.pointerId)
       dragging = false
       pointerId = null
       section.classList.remove('book-model-lab--dragging')
-      if (section.hasPointerCapture(event.pointerId)) section.releasePointerCapture(event.pointerId)
 
       if (allowPageTurn && wasClick && interactiveRig) {
         const bounds = section.getBoundingClientRect()
@@ -465,28 +443,28 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
       let handled = true
       switch (event.key) {
         case 'ArrowLeft':
-          if (event.shiftKey) targetYaw -= KEY_ROTATION
+          if (event.shiftKey) rotateCamera(-KEY_ROTATION, 0)
           else turnBy(-1)
           break
         case 'ArrowRight':
-          if (event.shiftKey) targetYaw += KEY_ROTATION
+          if (event.shiftKey) rotateCamera(KEY_ROTATION, 0)
           else turnBy(1)
           break
         case 'ArrowUp':
-          targetPitch -= KEY_ROTATION
+          rotateCamera(0, KEY_ROTATION)
           break
         case 'ArrowDown':
-          targetPitch += KEY_ROTATION
+          rotateCamera(0, -KEY_ROTATION)
           break
         case 'Home':
-          targetPitch = 0
-          targetYaw = 0
+          resetView()
           break
         default:
           handled = false
       }
       if (!handled) return
       event.preventDefault()
+      if (event.key !== 'Home') cameraHasMoved = true
       if (!hasMovedRef.current) {
         hasMovedRef.current = true
         setHasMoved(true)
@@ -494,8 +472,16 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
       requestRender()
     }
 
+    const handleMotionPreference = () => {
+      requestRender()
+    }
+
     const handleVisibility = () => {
-      if (document.visibilityState === 'visible') requestRender()
+      if (document.visibilityState === 'visible') {
+        lastFrameTime = performance.now()
+        turnAccumulator = 0
+        requestRender()
+      }
       else if (frame !== null) {
         window.cancelAnimationFrame(frame)
         frame = null
@@ -505,22 +491,27 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
     const resizeObserver = new ResizeObserver(resize)
     resizeObserver.observe(host)
     const visibilityObserver = new IntersectionObserver(([entry]) => {
-      visible = Boolean(entry?.isIntersecting)
-      if (visible) requestRender()
+      visible = Boolean(entry?.isIntersecting && entry.intersectionRatio > 0)
+      if (visible) {
+        lastFrameTime = performance.now()
+        turnAccumulator = 0
+        requestRender()
+      }
       else if (frame !== null) {
         window.cancelAnimationFrame(frame)
         frame = null
       }
-    })
+    }, { threshold: [0, 0.001] })
     visibilityObserver.observe(section)
 
     section.addEventListener('pointerdown', beginDrag)
     section.addEventListener('pointermove', moveDrag)
     section.addEventListener('pointerup', endDrag)
     section.addEventListener('pointercancel', cancelDrag)
+    section.addEventListener('lostpointercapture', cancelDrag)
     section.addEventListener('keydown', handleKeyDown)
     document.addEventListener('visibilitychange', handleVisibility)
-    reducedMotion.addEventListener('change', requestRender)
+    reducedMotion.addEventListener('change', handleMotionPreference)
 
     setLoadState('loading')
     resize()
@@ -558,10 +549,6 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
           rigReady = true
         } catch (error) {
           console.error('The interactive book pages could not be prepared.', error)
-          for (const name of [PAGE_BLOCK_NAME, FRONT_COVER_NAME, ...ORIGINAL_FRONT_LEAVES]) {
-            const original = model.getObjectByName(name)
-            if (original) original.visible = true
-          }
         }
         bookPivot.add(model)
         setLoadState(rigReady ? 'ready' : 'failed')
@@ -584,19 +571,17 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
       section.removeEventListener('pointermove', moveDrag)
       section.removeEventListener('pointerup', endDrag)
       section.removeEventListener('pointercancel', cancelDrag)
+      section.removeEventListener('lostpointercapture', cancelDrag)
       section.removeEventListener('keydown', handleKeyDown)
+      if (pointerId !== null && section.hasPointerCapture(pointerId)) {
+        section.releasePointerCapture(pointerId)
+      }
       document.removeEventListener('visibilitychange', handleVisibility)
-      reducedMotion.removeEventListener('change', requestRender)
+      reducedMotion.removeEventListener('change', handleMotionPreference)
       requestRenderRef.current = () => undefined
+      resetViewRef.current = () => undefined
       if (interactiveRig) {
-        interactiveRig.pageBlock.mesh.removeFromParent()
-        disposeBookPageRig(interactiveRig.pageBlock)
-        interactiveRig.cover.mesh.removeFromParent()
-        disposeBookPageRig(interactiveRig.cover)
-        interactiveRig.leaves.forEach((leaf) => {
-          leaf.mesh.removeFromParent()
-          disposeBookPageRig(leaf)
-        })
+        interactiveRig.dispose()
         interactiveRig = null
       }
       model?.traverse((node) => {
@@ -605,16 +590,12 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
         const materials = Array.isArray(node.material) ? node.material : [node.material]
         materials.forEach(disposeMaterial)
       })
-      if (shadow) {
-        shadow.geometry.dispose()
-        shadow.material.dispose()
-        shadow.texture.dispose()
-      }
       renderer.dispose()
       renderer.forceContextLoss()
       renderer.domElement.remove()
+      section.classList.remove('book-model-lab--dragging')
     }
-  }, [asset, leafCount, shouldMount, turnBy])
+  }, [asset, leafCount, lastTurnStep, shouldMount, turnBy])
 
   const instructionsId = `${asset.id}-model-instructions`
 
@@ -636,8 +617,8 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
       />
       <div ref={canvasHostRef} className="book-model-lab__canvas-host" aria-hidden="true" />
       <p id={instructionsId} className="book-model-lab__instructions">
-        Click either side or use ← / → to turn a leaf. Drag to inspect; Shift + ← / →
-        or ↑ / ↓ rotates.
+        Click either side or use ← / → to turn a leaf. Drag to orbit the view; Shift + ← / →
+        or ↑ / ↓ orbits with the keyboard.
       </p>
       <nav
         className="book-model-lab__nav"
@@ -670,6 +651,15 @@ export function BookModelLab({ asset = loveInTheTimeOfCholeraBookModel }: BookMo
           <span aria-hidden="true">&#8594;</span>
         </button>
       </nav>
+      <button
+        type="button"
+        className="book-model-lab__reset-button"
+        disabled={loadState !== 'ready'}
+        onPointerDown={(event) => event.stopPropagation()}
+        onClick={() => resetViewRef.current()}
+      >
+        Reset view
+      </button>
       <p className="book-model-lab__status visually-hidden" aria-live="polite">
         {loadState === 'ready'
           ? 'Interactive book model ready.'

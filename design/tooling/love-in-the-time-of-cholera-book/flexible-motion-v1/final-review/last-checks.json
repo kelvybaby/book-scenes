@@ -1,0 +1,9 @@
+{
+  "offscreenBefore": "40",
+  "offscreenAfter": "40",
+  "idleBefore": "225",
+  "idleAfter": "225",
+  "beforeCancel": "5.000000",
+  "afterCancel": "5.000000",
+  "draggingAfterCancel": false
+}

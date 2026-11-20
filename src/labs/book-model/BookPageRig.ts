@@ -8,6 +8,9 @@ export type BookPageRig = {
   width: number
   rightHingeY: number
   leftHingeY: number
+  closedX: number
+  rightOpeningX: number
+  leftOpeningX: number
   rightStackOffset: number
   leftStackOffset: number
   turnAngle: number
@@ -23,6 +26,8 @@ type CreateBookPageRigOptions = {
   rightStackOffset?: number
   leftStackOffset?: number
   leftHingeY?: number
+  rightOpeningX?: number
+  leftOpeningX?: number
   turnAngle: number
   restingBend?: number
   turningBend: number
@@ -180,6 +185,9 @@ export function createBookPageRig(
     width,
     rightHingeY,
     leftHingeY: options.leftHingeY ?? -rightHingeY,
+    closedX: mesh.position.x,
+    rightOpeningX: options.rightOpeningX ?? 0,
+    leftOpeningX: options.leftOpeningX ?? 0,
     rightStackOffset: options.rightStackOffset ?? 0,
     leftStackOffset: options.leftStackOffset ?? 0,
     turnAngle: options.turnAngle,
@@ -237,7 +245,14 @@ export function poseBookPage(rig: BookPageRig, progress: number, openness = 1) {
       rig.leftHingeY + rig.leftStackOffset,
       eased,
     )
-  rig.skeleton.update()
+  const openAmount = THREE.MathUtils.clamp(openness, 0, 1)
+  rig.mesh.position.x = THREE.MathUtils.lerp(
+    rig.closedX + rig.rightOpeningX * openAmount,
+    rig.closedX + rig.leftOpeningX * openAmount,
+    eased,
+  )
+  // WebGLRenderer updates each visible skeleton once immediately before draw.
+  // Updating it here as well duplicated all bone-matrix work on every turn frame.
 }
 
 export function disposeBookPageRig(rig: BookPageRig) {

@@ -1,0 +1,398 @@
+--- BookModelLab.restart
++++ src/labs/book-model/BookModelLab.tsx
+@@ -1,6 +1,5 @@
+ import { useCallback, useEffect, useRef, useState } from 'react'
+ import * as THREE from 'three'
+-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+ import {
+   loveInTheTimeOfCholeraBookModel,
+@@ -26,7 +25,8 @@
+ const MAX_TURN_ERROR = 0.29
+ const TURN_SETTLE_EPSILON = 0.00002
+ const UPRIGHT_CAMERA_DISTANCE_SCALE = 1.30
+-const DIAGONAL_DRAG_SENSITIVITY = 1.3
++const ORBIT_POLAR_MARGIN = 0.07
++const ORBIT_RADIANS_PER_HEIGHT = Math.PI * 1.5
+ 
+ type LoadState = 'waiting' | 'loading' | 'ready' | 'failed'
+ 
+@@ -124,6 +124,7 @@
+     let turnAccumulator = 0
+     let openCameraAmount = currentTurnStep > 0 ? 1 : 0
+     let lastFrameTime = performance.now()
++    let animating = false
+     let cameraHasMoved = false
+     let dragging = false
+     let pointerId: number | null = null
+@@ -132,12 +133,10 @@
+     let dragX = 0
+     let dragY = 0
+     let dragDistance = 0
+-    let dragMode: 'pending' | 'horizontal' | 'vertical' | 'trackball' = 'pending'
+     let lastPosedTurnStep = Number.NaN
+     let lastCameraAmount = Number.NaN
+     let portraitDistance = 1
+     let responsiveFov = 29
+-    let updatingCamera = false
+ 
+     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+     const scene = new THREE.Scene()
+@@ -169,130 +168,25 @@
+     renderer.domElement.setAttribute('aria-hidden', 'true')
+     host.appendChild(renderer.domElement)
+ 
+-    const controls = new OrbitControls(camera, renderer.domElement)
+-    controls.target.copy(LOOK_TARGET)
+-    controls.enablePan = false
+-    controls.enableZoom = false
+-    // Apply pointer motion immediately. Damping made the camera trail the
+-    // pointer and kept the expensive WebGL scene rendering after drag ended.
+-    controls.enableDamping = false
+-    controls.enableRotate = false
+-    controls.rotateSpeed = 1
+-    controls.minPolarAngle = 0.12
+-    controls.maxPolarAngle = Math.PI - 0.12
+-    controls.update()
+-
+-    const orbitFrame = controls as unknown as {
+-      _quat: THREE.Quaternion
+-      _quatInverse: THREE.Quaternion
+-    }
+     const worldUp = new THREE.Vector3(0, 1, 0)
+-    const orbitAxis = new THREE.Vector3()
++    const orbitTarget = LOOK_TARGET.clone()
+     const orbitOffset = new THREE.Vector3()
+-    const orbitRotation = new THREE.Quaternion()
+-    const dragCameraOffset = new THREE.Vector3()
+-    const dragCameraUp = new THREE.Vector3()
+-    const dragCameraRight = new THREE.Vector3()
+-    const dragHorizontalAxis = new THREE.Vector3()
+-    const cameraScreenUp = new THREE.Vector3()
+-    const bookHeightInCamera = new THREE.Vector3()
+-    const dragCameraQuaternion = new THREE.Quaternion()
+-    const dragCameraQuaternionInverse = new THREE.Quaternion()
+-    const dragTrackballStart = new THREE.Vector3()
+-    const dragTrackballCurrent = new THREE.Vector3()
+-    const dragLocalRotation = new THREE.Quaternion()
+-    const syncOrbitFrame = () => {
+-      orbitFrame._quat.setFromUnitVectors(camera.up, worldUp)
+-      orbitFrame._quatInverse.copy(orbitFrame._quat).invert()
+-    }
++    const spherical = new THREE.Spherical()
+     const rotateCamera = (horizontalAngle: number, verticalAngle: number) => {
+-      orbitOffset.copy(camera.position).sub(controls.target)
+-
+-      if (horizontalAngle !== 0) {
+-        // Horizontal inspection is a door-hinge orbit around the book's fixed
+-        // vertical spine. Carry the camera frame around that same axis so a
+-        // previous vertical tilt cannot turn an east-west drag into roll.
+-        orbitAxis.copy(worldUp)
+-        orbitRotation.setFromAxisAngle(orbitAxis, -horizontalAngle)
+-        orbitOffset.applyQuaternion(orbitRotation)
+-        camera.up.applyQuaternion(orbitRotation).normalize()
+-        camera.position.copy(controls.target).add(orbitOffset)
+-        camera.lookAt(controls.target)
+-      }
+-
+-      if (verticalAngle !== 0) {
+-        orbitAxis.set(1, 0, 0).applyQuaternion(camera.quaternion).normalize()
+-        orbitRotation.setFromAxisAngle(orbitAxis, verticalAngle)
+-        orbitOffset.applyQuaternion(orbitRotation)
+-        camera.up.applyQuaternion(orbitRotation).normalize()
+-      }
+-
+-      camera.position.copy(controls.target).add(orbitOffset)
+-      camera.lookAt(controls.target)
+-      syncOrbitFrame()
+-      controls.update()
+-    }
+-    const projectPointerToTrackball = (clientX: number, clientY: number, target: THREE.Vector3) => {
+-      const bounds = host.getBoundingClientRect()
+-      const radius = Math.max(1, Math.min(bounds.width, bounds.height) * 0.46)
+-      const x = (clientX - (bounds.left + bounds.width * 0.5)) / radius
+-      const y = (bounds.top + bounds.height * 0.5 - clientY) / radius
+-      const distanceSquared = x * x + y * y
+-      // Shoemake's sphere/hyperbola projection keeps rotation continuous when
+-      // a grab begins outside the central virtual sphere.
+-      const z =
+-        distanceSquared <= 0.5
+-          ? Math.sqrt(1 - distanceSquared)
+-          : 0.5 / Math.sqrt(distanceSquared)
+-      return target.set(x, y, z).normalize()
+-    }
+-    const rotateCameraFromDrag = (clientX: number, clientY: number) => {
+-      const horizontalAngle =
+-        (dragX * 2 * Math.PI * controls.rotateSpeed) / Math.max(1, host.clientHeight)
+-      const verticalAngle =
+-        (-dragY * 2 * Math.PI * controls.rotateSpeed) / Math.max(1, host.clientHeight)
+-      if (dragMode === 'pending') {
+-        if (Math.hypot(dragX, dragY) < 7) return
+-        const mostlyHorizontal = Math.abs(dragY) <= Math.abs(dragX) * 0.12
+-        const mostlyVertical = Math.abs(dragX) <= Math.abs(dragY) * 0.12
+-        dragMode = mostlyHorizontal ? 'horizontal' : mostlyVertical ? 'vertical' : 'trackball'
+-      }
+-
+-      if (dragMode === 'horizontal') {
+-        orbitRotation.setFromAxisAngle(dragHorizontalAxis, -horizontalAngle)
+-      } else if (dragMode === 'vertical') {
+-        orbitRotation.setFromAxisAngle(dragCameraRight, verticalAngle)
+-      } else {
+-        // An unconstrained diagonal uses the actual grab positions, allowing
+-        // an off-centre corner or edge to travel through depth instead of
+-        // reducing every gesture to the same pair of fixed-axis rotations.
+-        projectPointerToTrackball(clientX, clientY, dragTrackballCurrent)
+-        dragLocalRotation
+-          .setFromUnitVectors(dragTrackballStart, dragTrackballCurrent)
+-          .invert()
+-        const diagonalAngle =
+-          2 * Math.acos(THREE.MathUtils.clamp(dragLocalRotation.w, -1, 1))
+-        if (diagonalAngle > 0.000001) {
+-          orbitAxis
+-            .set(dragLocalRotation.x, dragLocalRotation.y, dragLocalRotation.z)
+-            .normalize()
+-          dragLocalRotation.setFromAxisAngle(
+-            orbitAxis,
+-            diagonalAngle * DIAGONAL_DRAG_SENSITIVITY,
+-          )
+-        }
+-        orbitRotation
+-          .copy(dragCameraQuaternion)
+-          .multiply(dragLocalRotation)
+-          .multiply(dragCameraQuaternionInverse)
+-      }
+-      orbitOffset.copy(dragCameraOffset)
+-      orbitOffset.applyQuaternion(orbitRotation)
+-      camera.up.copy(dragCameraUp).applyQuaternion(orbitRotation).normalize()
+-      camera.position.copy(controls.target).add(orbitOffset)
+-      camera.lookAt(controls.target)
+-      syncOrbitFrame()
+-      controls.update()
++      // One roll-free turntable for every drag direction, position and length.
++      // Horizontal movement always orbits the spine; vertical movement changes
++      // elevation. Stop just before the poles rather than flipping camera up.
++      orbitOffset.copy(camera.position).sub(orbitTarget)
++      spherical.setFromVector3(orbitOffset)
++      spherical.theta -= horizontalAngle
++      spherical.phi = THREE.MathUtils.clamp(
++        spherical.phi - verticalAngle, ORBIT_POLAR_MARGIN, Math.PI - ORBIT_POLAR_MARGIN,
++      )
++      orbitOffset.setFromSpherical(spherical)
++      camera.position.copy(orbitTarget).add(orbitOffset)
++      camera.up.copy(worldUp)
++      camera.lookAt(orbitTarget)
++      requestRender()
+     }
+ 
+     const bookPivot = new THREE.Group()
+@@ -330,7 +224,7 @@
+       if (cameraHasMoved) {
+         // Preserve the direction chosen by the viewer. Opening/closing and a
+         // responsive resize may change framing, but never reset the orbit.
+-        cameraOffset.copy(camera.position).sub(controls.target)
++        cameraOffset.copy(camera.position).sub(orbitTarget)
+         if (cameraOffset.lengthSq() < 0.000001) {
+           cameraOffset.copy(cameraPosition).sub(cameraTarget)
+         }
+@@ -343,12 +237,11 @@
+           .multiplyScalar(portraitDistance * UPRIGHT_CAMERA_DISTANCE_SCALE)
+         camera.position.copy(cameraTarget).add(cameraOffset)
+       }
+-      controls.target.copy(cameraTarget)
++      orbitTarget.copy(cameraTarget)
+       camera.fov = responsiveFov + openCameraAmount * 1.5
+       camera.updateProjectionMatrix()
+-      updatingCamera = true
+-      controls.update()
+-      updatingCamera = false
++      camera.up.copy(worldUp)
++      camera.lookAt(orbitTarget)
+       lastCameraAmount = openCameraAmount
+     }
+ 
+@@ -359,7 +252,6 @@
+       openCameraAmount = targetTurnStepRef.current > 0 ? 1 : 0
+       cameraHasMoved = false
+       camera.up.copy(worldUp)
+-      syncOrbitFrame()
+       updateCamera()
+       requestRender()
+     }
+@@ -372,9 +264,9 @@
+       renderer.setSize(width, height, false)
+       camera.aspect = width / height
+       portraitDistance = THREE.MathUtils.clamp(
+-        THREE.MathUtils.mapLinear(camera.aspect, 0.42, 0.92, 1.3, 1),
++        THREE.MathUtils.mapLinear(camera.aspect, 0.42, 0.92, 1.7, 1),
+         1,
+-        1.3,
++        1.7,
+       )
+       responsiveFov = camera.aspect < 0.92 ? 37 : 29
+       updateCamera()
+@@ -384,8 +276,8 @@
+     const render = (timestamp = performance.now()) => {
+       frame = null
+       if (disposed || !visible || document.visibilityState !== 'visible') return
+-      // Keep the authored duration tied to wall time even if a device briefly
+-      // drops below 20 fps; the previous 50 ms cap made turns run in slow motion.
++      // Integrate elapsed time, with bounded catch-up after a long main-thread
++      // stall. Visibility resume resets the clock rather than consuming pause.
+       const delta = Math.max(0, (timestamp - lastFrameTime) / 1000)
+       lastFrameTime = timestamp
+       let pageMoving = false
+@@ -401,7 +293,7 @@
+           // Each quantum solves a critically damped spring analytically. Limit
+           // its driving error so a queue of rapid clicks does not fling pages;
+           // retargeting preserves velocity and gently brakes a reversal.
+-          turnAccumulator += delta
++          turnAccumulator += Math.min(delta, 0.25)
+           const quantum = 1 / 120
+           while (turnAccumulator >= quantum) {
+             const error = THREE.MathUtils.clamp(
+@@ -458,7 +350,8 @@
+       renderer.domElement.dataset.turnVelocity = turnVelocity.toFixed(6)
+       renderer.domElement.dataset.renderCount = String(renderer.info.render.frame + 1)
+       renderer.render(scene, camera)
+-      if (!reducedMotion.matches && (pageMoving || cameraMoving)) {
++      animating = !reducedMotion.matches && (pageMoving || cameraMoving)
++      if (animating) {
+         requestRender()
+       }
+     }
+@@ -470,6 +363,9 @@
+         document.visibilityState === 'visible' &&
+         !disposed
+       ) {
++        // A fresh input after resting must start with one frame's delta, not
++        // treat time spent idle as animation catch-up.
++        if (!animating) lastFrameTime = performance.now()
+         frame = window.requestAnimationFrame(render)
+       }
+     }
+@@ -480,6 +376,9 @@
+       const target = event.target
+       if (
+         !model ||
++        dragging ||
++        pointerId !== null ||
++        !event.isPrimary ||
+         event.button !== 0 ||
+         (target instanceof Element &&
+           target.closest('.book-model-lab__nav, .book-model-lab__reset-button'))
+@@ -494,35 +393,6 @@
+       dragX = 0
+       dragY = 0
+       dragDistance = 0
+-      dragMode = 'pending'
+-      dragCameraOffset.copy(camera.position).sub(controls.target)
+-      dragCameraQuaternion.copy(camera.quaternion)
+-      dragCameraQuaternionInverse.copy(dragCameraQuaternion).invert()
+-      dragCameraUp.copy(camera.up)
+-      dragCameraRight.set(1, 0, 0).applyQuaternion(dragCameraQuaternion).normalize()
+-      cameraScreenUp.set(0, 1, 0).applyQuaternion(dragCameraQuaternion).normalize()
+-      const endOnAmount =
+-        Math.abs(dragCameraOffset.y) / Math.max(dragCameraOffset.length(), 0.000001)
+-      bookHeightInCamera
+-        .copy(worldUp)
+-        .applyQuaternion(dragCameraQuaternionInverse)
+-        .normalize()
+-      if (endOnAmount > 0.78) {
+-        // Looking along the head/tail axis: orbit around the cover normal to
+-        // bring the spine or fore edge forward.
+-        dragHorizontalAxis.set(0, 0, Math.sign(cameraScreenUp.z) || 1)
+-      } else if (Math.abs(bookHeightInCamera.y) >= Math.abs(bookHeightInCamera.x) * 0.8) {
+-        // The book is upright on screen: retain the approved door-like path.
+-        dragHorizontalAxis.set(0, Math.sign(cameraScreenUp.y) || 1, 0)
+-      } else if (Math.abs(cameraScreenUp.x) >= Math.abs(cameraScreenUp.z)) {
+-        // The book is lying sideways: its width is now the screen-vertical
+-        // hinge, so a horizontal drag can turn the head/tail edge toward us.
+-        dragHorizontalAxis.set(Math.sign(cameraScreenUp.x) || 1, 0, 0)
+-      } else {
+-        dragHorizontalAxis.set(0, 0, Math.sign(cameraScreenUp.z) || 1)
+-      }
+-      projectPointerToTrackball(event.clientX, event.clientY, dragTrackballStart)
+-      cameraHasMoved = true
+       section.focus({ preventScroll: true })
+       section.classList.add('book-model-lab--dragging')
+     }
+@@ -536,8 +406,14 @@
+       dragX += deltaX
+       dragY += deltaY
+       dragDistance += Math.hypot(deltaX, deltaY)
+-      if (dragX !== 0 || dragY !== 0) {
+-        rotateCameraFromDrag(event.clientX, event.clientY)
++      if (dragDistance >= 7) {
++        // Include initial sub-threshold movement once; then use increments so
++        // opening during a grab cannot jump to a stale pointer-down frame.
++        const radians = ORBIT_RADIANS_PER_HEIGHT / Math.max(1, host.clientHeight)
++        rotateCamera(dragX * radians, dragY * radians)
++        dragX = 0
++        dragY = 0
++        cameraHasMoved = true
+       }
+       if (!hasMovedRef.current && Math.abs(deltaX) + Math.abs(deltaY) > 2) {
+         hasMovedRef.current = true
+@@ -596,10 +472,6 @@
+       requestRender()
+     }
+ 
+-    const handleControlsChange = () => {
+-      if (!updatingCamera) requestRender()
+-    }
+-
+     const handleMotionPreference = () => {
+       requestRender()
+     }
+@@ -619,7 +491,7 @@
+     const resizeObserver = new ResizeObserver(resize)
+     resizeObserver.observe(host)
+     const visibilityObserver = new IntersectionObserver(([entry]) => {
+-      visible = Boolean(entry?.isIntersecting)
++      visible = Boolean(entry?.isIntersecting && entry.intersectionRatio > 0)
+       if (visible) {
+         lastFrameTime = performance.now()
+         turnAccumulator = 0
+@@ -629,14 +501,14 @@
+         window.cancelAnimationFrame(frame)
+         frame = null
+       }
+-    })
++    }, { threshold: [0, 0.001] })
+     visibilityObserver.observe(section)
+ 
+-    controls.addEventListener('change', handleControlsChange)
+     section.addEventListener('pointerdown', beginDrag)
+     section.addEventListener('pointermove', moveDrag)
+     section.addEventListener('pointerup', endDrag)
+     section.addEventListener('pointercancel', cancelDrag)
++    section.addEventListener('lostpointercapture', cancelDrag)
+     section.addEventListener('keydown', handleKeyDown)
+     document.addEventListener('visibilitychange', handleVisibility)
+     reducedMotion.addEventListener('change', handleMotionPreference)
+@@ -695,13 +567,15 @@
+       if (frame !== null) window.cancelAnimationFrame(frame)
+       resizeObserver.disconnect()
+       visibilityObserver.disconnect()
+-      controls.removeEventListener('change', handleControlsChange)
+-      controls.dispose()
+       section.removeEventListener('pointerdown', beginDrag)
+       section.removeEventListener('pointermove', moveDrag)
+       section.removeEventListener('pointerup', endDrag)
+       section.removeEventListener('pointercancel', cancelDrag)
++      section.removeEventListener('lostpointercapture', cancelDrag)
+       section.removeEventListener('keydown', handleKeyDown)
++      if (pointerId !== null && section.hasPointerCapture(pointerId)) {
++        section.releasePointerCapture(pointerId)
++      }
+       document.removeEventListener('visibilitychange', handleVisibility)
+       reducedMotion.removeEventListener('change', handleMotionPreference)
+       requestRenderRef.current = () => undefined
+@@ -719,6 +593,7 @@
+       renderer.dispose()
+       renderer.forceContextLoss()
+       renderer.domElement.remove()
++      section.classList.remove('book-model-lab--dragging')
+     }
+   }, [asset, leafCount, lastTurnStep, shouldMount, turnBy])
+ 

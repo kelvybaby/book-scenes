@@ -1,0 +1,14 @@
+{
+  "src/labs/book-model/EarlyPageOpenRig.ts": {
+    "sha256": "934c3379c2ced46ea9b9943880aa13a013b6b0cd2532a845a3bbe28874f99f50",
+    "restartDiff": "EarlyPageOpenRig.restart.diff"
+  },
+  "src/labs/book-model/BookModelLab.tsx": {
+    "sha256": "380d54007964a693a09e12e18f65f5d9a5270c32ddaf325989942caa832482ce",
+    "restartDiff": "BookModelLab.restart.diff"
+  },
+  "src/labs/book-model/bookModelLab.css": {
+    "sha256": "457e92f39c8e893f0734bdffe758d67915db38368f79d475c8a92bcd0ebdf57b",
+    "change": "Removed coarse-pointer pan-y override; inherited touch-action:none supports vertical/diagonal touch orbit."
+  }
+}

@@ -1,0 +1,2982 @@
+{
+  "issues": [],
+  "idleBefore": "1326",
+  "idleAfter": "1326",
+  "states": [
+    {
+      "label": "closed-front",
+      "engine": "three.js r185",
+      "turnStep": "0.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "4"
+    },
+    {
+      "label": "cover/0",
+      "engine": "three.js r185",
+      "turnStep": "0.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "4"
+    },
+    {
+      "label": "cover/1",
+      "engine": "three.js r185",
+      "turnStep": "0.007243",
+      "turnVelocity": "0.321508",
+      "renderCount": "7"
+    },
+    {
+      "label": "cover/2",
+      "engine": "three.js r185",
+      "turnStep": "0.029528",
+      "turnVelocity": "0.547705",
+      "renderCount": "10"
+    },
+    {
+      "label": "cover/3",
+      "engine": "three.js r185",
+      "turnStep": "0.060368",
+      "turnVelocity": "0.673438",
+      "renderCount": "13"
+    },
+    {
+      "label": "cover/4",
+      "engine": "three.js r185",
+      "turnStep": "0.089806",
+      "turnVelocity": "0.734334",
+      "renderCount": "16"
+    },
+    {
+      "label": "cover/5",
+      "engine": "three.js r185",
+      "turnStep": "0.127705",
+      "turnVelocity": "0.777178",
+      "renderCount": "19"
+    },
+    {
+      "label": "cover/6",
+      "engine": "three.js r185",
+      "turnStep": "0.167225",
+      "turnVelocity": "0.800992",
+      "renderCount": "22"
+    },
+    {
+      "label": "cover/7",
+      "engine": "three.js r185",
+      "turnStep": "0.207646",
+      "turnVelocity": "0.814230",
+      "renderCount": "25"
+    },
+    {
+      "label": "cover/8",
+      "engine": "three.js r185",
+      "turnStep": "0.255419",
+      "turnVelocity": "0.822447",
+      "renderCount": "29"
+    },
+    {
+      "label": "cover/9",
+      "engine": "three.js r185",
+      "turnStep": "0.296651",
+      "turnVelocity": "0.826156",
+      "renderCount": "32"
+    },
+    {
+      "label": "cover/10",
+      "engine": "three.js r185",
+      "turnStep": "0.338023",
+      "turnVelocity": "0.828217",
+      "renderCount": "35"
+    },
+    {
+      "label": "cover/11",
+      "engine": "three.js r185",
+      "turnStep": "0.379473",
+      "turnVelocity": "0.829363",
+      "renderCount": "38"
+    },
+    {
+      "label": "cover/12",
+      "engine": "three.js r185",
+      "turnStep": "0.414049",
+      "turnVelocity": "0.829918",
+      "renderCount": "41"
+    },
+    {
+      "label": "cover/13",
+      "engine": "three.js r185",
+      "turnStep": "0.455564",
+      "turnVelocity": "0.830309",
+      "renderCount": "44"
+    },
+    {
+      "label": "cover/14",
+      "engine": "three.js r185",
+      "turnStep": "0.497094",
+      "turnVelocity": "0.830526",
+      "renderCount": "47"
+    },
+    {
+      "label": "cover/15",
+      "engine": "three.js r185",
+      "turnStep": "0.538631",
+      "turnVelocity": "0.830646",
+      "renderCount": "50"
+    },
+    {
+      "label": "cover/16",
+      "engine": "three.js r185",
+      "turnStep": "0.587098",
+      "turnVelocity": "0.830721",
+      "renderCount": "54"
+    },
+    {
+      "label": "cover/17",
+      "engine": "three.js r185",
+      "turnStep": "0.628643",
+      "turnVelocity": "0.830755",
+      "renderCount": "57"
+    },
+    {
+      "label": "cover/18",
+      "engine": "three.js r185",
+      "turnStep": "0.670189",
+      "turnVelocity": "0.830774",
+      "renderCount": "60"
+    },
+    {
+      "label": "cover/19",
+      "engine": "three.js r185",
+      "turnStep": "0.711736",
+      "turnVelocity": "0.830784",
+      "renderCount": "63"
+    },
+    {
+      "label": "cover/20",
+      "engine": "three.js r185",
+      "turnStep": "0.746098",
+      "turnVelocity": "0.812067",
+      "renderCount": "66"
+    },
+    {
+      "label": "cover/21",
+      "engine": "three.js r185",
+      "turnStep": "0.785300",
+      "turnVelocity": "0.750981",
+      "renderCount": "69"
+    },
+    {
+      "label": "cover/22",
+      "engine": "three.js r185",
+      "turnStep": "0.820855",
+      "turnVelocity": "0.669188",
+      "renderCount": "72"
+    },
+    {
+      "label": "cover/23",
+      "engine": "three.js r185",
+      "turnStep": "0.852115",
+      "turnVelocity": "0.580985",
+      "renderCount": "75"
+    },
+    {
+      "label": "cover/24",
+      "engine": "three.js r185",
+      "turnStep": "0.883055",
+      "turnVelocity": "0.480974",
+      "renderCount": "79"
+    },
+    {
+      "label": "cover/25",
+      "engine": "three.js r185",
+      "turnStep": "0.905112",
+      "turnVelocity": "0.402710",
+      "renderCount": "82"
+    },
+    {
+      "label": "cover/26",
+      "engine": "three.js r185",
+      "turnStep": "0.923475",
+      "turnVelocity": "0.333370",
+      "renderCount": "85"
+    },
+    {
+      "label": "cover/27",
+      "engine": "three.js r185",
+      "turnStep": "0.938606",
+      "turnVelocity": "0.273421",
+      "renderCount": "88"
+    },
+    {
+      "label": "cover/28",
+      "engine": "three.js r185",
+      "turnStep": "0.949082",
+      "turnVelocity": "0.230411",
+      "renderCount": "91"
+    },
+    {
+      "label": "cover/29",
+      "engine": "three.js r185",
+      "turnStep": "0.959471",
+      "turnVelocity": "0.186494",
+      "renderCount": "94"
+    },
+    {
+      "label": "cover/30",
+      "engine": "three.js r185",
+      "turnStep": "0.967856",
+      "turnVelocity": "0.150087",
+      "renderCount": "97"
+    },
+    {
+      "label": "cover/31",
+      "engine": "three.js r185",
+      "turnStep": "0.974588",
+      "turnVelocity": "0.120192",
+      "renderCount": "100"
+    },
+    {
+      "label": "cover/32",
+      "engine": "three.js r185",
+      "turnStep": "0.980751",
+      "turnVelocity": "0.092252",
+      "renderCount": "104"
+    },
+    {
+      "label": "cover/33",
+      "engine": "three.js r185",
+      "turnStep": "0.984871",
+      "turnVelocity": "0.073237",
+      "renderCount": "107"
+    },
+    {
+      "label": "cover/34",
+      "engine": "three.js r185",
+      "turnStep": "0.988137",
+      "turnVelocity": "0.057949",
+      "renderCount": "110"
+    },
+    {
+      "label": "cover/35",
+      "engine": "three.js r185",
+      "turnStep": "0.990717",
+      "turnVelocity": "0.045717",
+      "renderCount": "113"
+    },
+    {
+      "label": "cover/36",
+      "engine": "three.js r185",
+      "turnStep": "0.992444",
+      "turnVelocity": "0.037444",
+      "renderCount": "116"
+    },
+    {
+      "label": "cover/37",
+      "engine": "three.js r185",
+      "turnStep": "0.994108",
+      "turnVelocity": "0.029402",
+      "renderCount": "119"
+    },
+    {
+      "label": "cover/38",
+      "engine": "three.js r185",
+      "turnStep": "0.995412",
+      "turnVelocity": "0.023036",
+      "renderCount": "122"
+    },
+    {
+      "label": "cover/39",
+      "engine": "three.js r185",
+      "turnStep": "0.996434",
+      "turnVelocity": "0.018012",
+      "renderCount": "125"
+    },
+    {
+      "label": "cover/40",
+      "engine": "three.js r185",
+      "turnStep": "0.997346",
+      "turnVelocity": "0.013487",
+      "renderCount": "129"
+    },
+    {
+      "label": "cover/41",
+      "engine": "three.js r185",
+      "turnStep": "0.997943",
+      "turnVelocity": "0.010505",
+      "renderCount": "132"
+    },
+    {
+      "label": "cover/42",
+      "engine": "three.js r185",
+      "turnStep": "0.998407",
+      "turnVelocity": "0.008170",
+      "renderCount": "135"
+    },
+    {
+      "label": "cover/43",
+      "engine": "three.js r185",
+      "turnStep": "0.998768",
+      "turnVelocity": "0.006345",
+      "renderCount": "138"
+    },
+    {
+      "label": "cover/44",
+      "engine": "three.js r185",
+      "turnStep": "0.999007",
+      "turnVelocity": "0.005134",
+      "renderCount": "141"
+    },
+    {
+      "label": "cover/45",
+      "engine": "three.js r185",
+      "turnStep": "0.999233",
+      "turnVelocity": "0.003978",
+      "renderCount": "144"
+    },
+    {
+      "label": "cover/46",
+      "engine": "three.js r185",
+      "turnStep": "0.999409",
+      "turnVelocity": "0.003078",
+      "renderCount": "147"
+    },
+    {
+      "label": "cover/47",
+      "engine": "three.js r185",
+      "turnStep": "0.999544",
+      "turnVelocity": "0.002380",
+      "renderCount": "150"
+    },
+    {
+      "label": "cover/48",
+      "engine": "three.js r185",
+      "turnStep": "0.999664",
+      "turnVelocity": "0.001760",
+      "renderCount": "154"
+    },
+    {
+      "label": "cover/49",
+      "engine": "three.js r185",
+      "turnStep": "0.999742",
+      "turnVelocity": "0.001357",
+      "renderCount": "157"
+    },
+    {
+      "label": "cover/50",
+      "engine": "three.js r185",
+      "turnStep": "0.999802",
+      "turnVelocity": "0.001046",
+      "renderCount": "160"
+    },
+    {
+      "label": "cover/51",
+      "engine": "three.js r185",
+      "turnStep": "0.999848",
+      "turnVelocity": "0.000806",
+      "renderCount": "163"
+    },
+    {
+      "label": "cover/52",
+      "engine": "three.js r185",
+      "turnStep": "0.999878",
+      "turnVelocity": "0.000648",
+      "renderCount": "166"
+    },
+    {
+      "label": "cover/53",
+      "engine": "three.js r185",
+      "turnStep": "0.999906",
+      "turnVelocity": "0.000498",
+      "renderCount": "169"
+    },
+    {
+      "label": "cover/54",
+      "engine": "three.js r185",
+      "turnStep": "0.999928",
+      "turnVelocity": "0.000383",
+      "renderCount": "172"
+    },
+    {
+      "label": "cover/55",
+      "engine": "three.js r185",
+      "turnStep": "0.999945",
+      "turnVelocity": "0.000294",
+      "renderCount": "175"
+    },
+    {
+      "label": "cover/56",
+      "engine": "three.js r185",
+      "turnStep": "0.999960",
+      "turnVelocity": "0.000216",
+      "renderCount": "179"
+    },
+    {
+      "label": "cover/57",
+      "engine": "three.js r185",
+      "turnStep": "0.999969",
+      "turnVelocity": "0.000165",
+      "renderCount": "182"
+    },
+    {
+      "label": "cover/58",
+      "engine": "three.js r185",
+      "turnStep": "0.999976",
+      "turnVelocity": "0.000127",
+      "renderCount": "185"
+    },
+    {
+      "label": "cover/59",
+      "engine": "three.js r185",
+      "turnStep": "0.999982",
+      "turnVelocity": "0.000097",
+      "renderCount": "188"
+    },
+    {
+      "label": "cover/60",
+      "engine": "three.js r185",
+      "turnStep": "0.999986",
+      "turnVelocity": "0.000078",
+      "renderCount": "191"
+    },
+    {
+      "label": "cover/61",
+      "engine": "three.js r185",
+      "turnStep": "0.999989",
+      "turnVelocity": "0.000059",
+      "renderCount": "194"
+    },
+    {
+      "label": "cover/62",
+      "engine": "three.js r185",
+      "turnStep": "0.999992",
+      "turnVelocity": "0.000045",
+      "renderCount": "197"
+    },
+    {
+      "label": "cover/63",
+      "engine": "three.js r185",
+      "turnStep": "0.999994",
+      "turnVelocity": "0.000035",
+      "renderCount": "200"
+    },
+    {
+      "label": "cover/64",
+      "engine": "three.js r185",
+      "turnStep": "0.999995",
+      "turnVelocity": "0.000025",
+      "renderCount": "204"
+    },
+    {
+      "label": "forward/0",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "207"
+    },
+    {
+      "label": "forward/1",
+      "engine": "three.js r185",
+      "turnStep": "1.007243",
+      "turnVelocity": "0.321508",
+      "renderCount": "210"
+    },
+    {
+      "label": "forward/2",
+      "engine": "three.js r185",
+      "turnStep": "1.025082",
+      "turnVelocity": "0.518596",
+      "renderCount": "213"
+    },
+    {
+      "label": "forward/3",
+      "engine": "three.js r185",
+      "turnStep": "1.054822",
+      "turnVelocity": "0.657258",
+      "renderCount": "216"
+    },
+    {
+      "label": "forward/4",
+      "engine": "three.js r185",
+      "turnStep": "1.089806",
+      "turnVelocity": "0.734334",
+      "renderCount": "219"
+    },
+    {
+      "label": "forward/5",
+      "engine": "three.js r185",
+      "turnStep": "1.127705",
+      "turnVelocity": "0.777178",
+      "renderCount": "222"
+    },
+    {
+      "label": "forward/6",
+      "engine": "three.js r185",
+      "turnStep": "1.173913",
+      "turnVelocity": "0.803771",
+      "renderCount": "226"
+    },
+    {
+      "label": "forward/7",
+      "engine": "three.js r185",
+      "turnStep": "1.214439",
+      "turnVelocity": "0.815775",
+      "renderCount": "229"
+    },
+    {
+      "label": "forward/8",
+      "engine": "three.js r185",
+      "turnStep": "1.255419",
+      "turnVelocity": "0.822447",
+      "renderCount": "232"
+    },
+    {
+      "label": "forward/9",
+      "engine": "three.js r185",
+      "turnStep": "1.296651",
+      "turnVelocity": "0.826156",
+      "renderCount": "235"
+    },
+    {
+      "label": "forward/10",
+      "engine": "three.js r185",
+      "turnStep": "1.331121",
+      "turnVelocity": "0.827952",
+      "renderCount": "238"
+    },
+    {
+      "label": "forward/11",
+      "engine": "three.js r185",
+      "turnStep": "1.372561",
+      "turnVelocity": "0.829216",
+      "renderCount": "241"
+    },
+    {
+      "label": "forward/12",
+      "engine": "three.js r185",
+      "turnStep": "1.414049",
+      "turnVelocity": "0.829918",
+      "renderCount": "244"
+    },
+    {
+      "label": "forward/13",
+      "engine": "three.js r185",
+      "turnStep": "1.455564",
+      "turnVelocity": "0.830309",
+      "renderCount": "247"
+    },
+    {
+      "label": "forward/14",
+      "engine": "three.js r185",
+      "turnStep": "1.504016",
+      "turnVelocity": "0.830551",
+      "renderCount": "251"
+    },
+    {
+      "label": "forward/15",
+      "engine": "three.js r185",
+      "turnStep": "1.545555",
+      "turnVelocity": "0.830661",
+      "renderCount": "254"
+    },
+    {
+      "label": "forward/16",
+      "engine": "three.js r185",
+      "turnStep": "1.587098",
+      "turnVelocity": "0.830721",
+      "renderCount": "257"
+    },
+    {
+      "label": "forward/17",
+      "engine": "three.js r185",
+      "turnStep": "1.628643",
+      "turnVelocity": "0.830755",
+      "renderCount": "260"
+    },
+    {
+      "label": "forward/18",
+      "engine": "three.js r185",
+      "turnStep": "1.663265",
+      "turnVelocity": "0.830772",
+      "renderCount": "263"
+    },
+    {
+      "label": "forward/19",
+      "engine": "three.js r185",
+      "turnStep": "1.704812",
+      "turnVelocity": "0.830783",
+      "renderCount": "266"
+    },
+    {
+      "label": "forward/20",
+      "engine": "three.js r185",
+      "turnStep": "1.746098",
+      "turnVelocity": "0.812067",
+      "renderCount": "269"
+    },
+    {
+      "label": "forward/21",
+      "engine": "three.js r185",
+      "turnStep": "1.785300",
+      "turnVelocity": "0.750981",
+      "renderCount": "272"
+    },
+    {
+      "label": "forward/22",
+      "engine": "three.js r185",
+      "turnStep": "1.826371",
+      "turnVelocity": "0.654646",
+      "renderCount": "276"
+    },
+    {
+      "label": "forward/23",
+      "engine": "three.js r185",
+      "turnStep": "1.856896",
+      "turnVelocity": "0.566317",
+      "renderCount": "279"
+    },
+    {
+      "label": "forward/24",
+      "engine": "three.js r185",
+      "turnStep": "1.883055",
+      "turnVelocity": "0.480974",
+      "renderCount": "282"
+    },
+    {
+      "label": "forward/25",
+      "engine": "three.js r185",
+      "turnStep": "1.905112",
+      "turnVelocity": "0.402710",
+      "renderCount": "285"
+    },
+    {
+      "label": "forward/26",
+      "engine": "three.js r185",
+      "turnStep": "1.920652",
+      "turnVelocity": "0.344275",
+      "renderCount": "288"
+    },
+    {
+      "label": "forward/27",
+      "engine": "three.js r185",
+      "turnStep": "1.936289",
+      "turnVelocity": "0.282768",
+      "renderCount": "291"
+    },
+    {
+      "label": "forward/28",
+      "engine": "three.js r185",
+      "turnStep": "1.949082",
+      "turnVelocity": "0.230411",
+      "renderCount": "294"
+    },
+    {
+      "label": "forward/29",
+      "engine": "three.js r185",
+      "turnStep": "1.959471",
+      "turnVelocity": "0.186494",
+      "renderCount": "297"
+    },
+    {
+      "label": "forward/30",
+      "engine": "three.js r185",
+      "turnStep": "1.969084",
+      "turnVelocity": "0.144680",
+      "renderCount": "301"
+    },
+    {
+      "label": "forward/31",
+      "engine": "three.js r185",
+      "turnStep": "1.975571",
+      "turnVelocity": "0.115773",
+      "renderCount": "304"
+    },
+    {
+      "label": "forward/32",
+      "engine": "three.js r185",
+      "turnStep": "1.980751",
+      "turnVelocity": "0.092252",
+      "renderCount": "307"
+    },
+    {
+      "label": "forward/33",
+      "engine": "three.js r185",
+      "turnStep": "1.984871",
+      "turnVelocity": "0.073237",
+      "renderCount": "310"
+    },
+    {
+      "label": "forward/34",
+      "engine": "three.js r185",
+      "turnStep": "1.987645",
+      "turnVelocity": "0.060268",
+      "renderCount": "313"
+    },
+    {
+      "label": "forward/35",
+      "engine": "three.js r185",
+      "turnStep": "1.990329",
+      "turnVelocity": "0.047568",
+      "renderCount": "316"
+    },
+    {
+      "label": "forward/36",
+      "engine": "three.js r185",
+      "turnStep": "1.992444",
+      "turnVelocity": "0.037444",
+      "renderCount": "319"
+    },
+    {
+      "label": "forward/37",
+      "engine": "three.js r185",
+      "turnStep": "1.994108",
+      "turnVelocity": "0.029402",
+      "renderCount": "322"
+    },
+    {
+      "label": "forward/38",
+      "engine": "three.js r185",
+      "turnStep": "1.995600",
+      "turnVelocity": "0.022114",
+      "renderCount": "326"
+    },
+    {
+      "label": "forward/39",
+      "engine": "three.js r185",
+      "turnStep": "1.996581",
+      "turnVelocity": "0.017286",
+      "renderCount": "329"
+    },
+    {
+      "label": "forward/40",
+      "engine": "three.js r185",
+      "turnStep": "1.997346",
+      "turnVelocity": "0.013487",
+      "renderCount": "332"
+    },
+    {
+      "label": "forward/41",
+      "engine": "three.js r185",
+      "turnStep": "1.997943",
+      "turnVelocity": "0.010505",
+      "renderCount": "335"
+    },
+    {
+      "label": "forward/42",
+      "engine": "three.js r185",
+      "turnStep": "1.998338",
+      "turnVelocity": "0.008521",
+      "renderCount": "338"
+    },
+    {
+      "label": "forward/43",
+      "engine": "three.js r185",
+      "turnStep": "1.998714",
+      "turnVelocity": "0.006619",
+      "renderCount": "341"
+    },
+    {
+      "label": "forward/44",
+      "engine": "three.js r185",
+      "turnStep": "1.999007",
+      "turnVelocity": "0.005134",
+      "renderCount": "344"
+    },
+    {
+      "label": "forward/45",
+      "engine": "three.js r185",
+      "turnStep": "1.999233",
+      "turnVelocity": "0.003978",
+      "renderCount": "347"
+    },
+    {
+      "label": "forward/46",
+      "engine": "three.js r185",
+      "turnStep": "1.999434",
+      "turnVelocity": "0.002949",
+      "renderCount": "351"
+    },
+    {
+      "label": "forward/47",
+      "engine": "three.js r185",
+      "turnStep": "1.999564",
+      "turnVelocity": "0.002279",
+      "renderCount": "354"
+    },
+    {
+      "label": "forward/48",
+      "engine": "three.js r185",
+      "turnStep": "1.999664",
+      "turnVelocity": "0.001760",
+      "renderCount": "357"
+    },
+    {
+      "label": "forward/49",
+      "engine": "three.js r185",
+      "turnStep": "1.999742",
+      "turnVelocity": "0.001357",
+      "renderCount": "360"
+    },
+    {
+      "label": "forward/50",
+      "engine": "three.js r185",
+      "turnStep": "1.999793",
+      "turnVelocity": "0.001093",
+      "renderCount": "363"
+    },
+    {
+      "label": "forward/51",
+      "engine": "three.js r185",
+      "turnStep": "1.999841",
+      "turnVelocity": "0.000841",
+      "renderCount": "366"
+    },
+    {
+      "label": "forward/52",
+      "engine": "three.js r185",
+      "turnStep": "1.999878",
+      "turnVelocity": "0.000648",
+      "renderCount": "369"
+    },
+    {
+      "label": "forward/53",
+      "engine": "three.js r185",
+      "turnStep": "1.999906",
+      "turnVelocity": "0.000498",
+      "renderCount": "372"
+    },
+    {
+      "label": "forward/54",
+      "engine": "three.js r185",
+      "turnStep": "1.999931",
+      "turnVelocity": "0.000366",
+      "renderCount": "376"
+    },
+    {
+      "label": "forward/55",
+      "engine": "three.js r185",
+      "turnStep": "1.999947",
+      "turnVelocity": "0.000281",
+      "renderCount": "379"
+    },
+    {
+      "label": "forward/56",
+      "engine": "three.js r185",
+      "turnStep": "1.999960",
+      "turnVelocity": "0.000216",
+      "renderCount": "382"
+    },
+    {
+      "label": "forward/57",
+      "engine": "three.js r185",
+      "turnStep": "1.999969",
+      "turnVelocity": "0.000165",
+      "renderCount": "385"
+    },
+    {
+      "label": "forward/58",
+      "engine": "three.js r185",
+      "turnStep": "1.999975",
+      "turnVelocity": "0.000132",
+      "renderCount": "388"
+    },
+    {
+      "label": "forward/59",
+      "engine": "three.js r185",
+      "turnStep": "1.999981",
+      "turnVelocity": "0.000101",
+      "renderCount": "391"
+    },
+    {
+      "label": "forward/60",
+      "engine": "three.js r185",
+      "turnStep": "1.999986",
+      "turnVelocity": "0.000078",
+      "renderCount": "394"
+    },
+    {
+      "label": "forward/61",
+      "engine": "three.js r185",
+      "turnStep": "1.999989",
+      "turnVelocity": "0.000059",
+      "renderCount": "397"
+    },
+    {
+      "label": "forward/62",
+      "engine": "three.js r185",
+      "turnStep": "1.999992",
+      "turnVelocity": "0.000043",
+      "renderCount": "401"
+    },
+    {
+      "label": "forward/63",
+      "engine": "three.js r185",
+      "turnStep": "1.999994",
+      "turnVelocity": "0.000033",
+      "renderCount": "404"
+    },
+    {
+      "label": "forward/64",
+      "engine": "three.js r185",
+      "turnStep": "1.999995",
+      "turnVelocity": "0.000025",
+      "renderCount": "407"
+    },
+    {
+      "label": "backward/0",
+      "engine": "three.js r185",
+      "turnStep": "1.999995",
+      "turnVelocity": "0.000025",
+      "renderCount": "407"
+    },
+    {
+      "label": "backward/1",
+      "engine": "three.js r185",
+      "turnStep": "1.989872",
+      "turnVelocity": "-0.368978",
+      "renderCount": "410"
+    },
+    {
+      "label": "backward/2",
+      "engine": "three.js r185",
+      "turnStep": "1.970469",
+      "turnVelocity": "-0.547696",
+      "renderCount": "413"
+    },
+    {
+      "label": "backward/3",
+      "engine": "three.js r185",
+      "turnStep": "1.939629",
+      "turnVelocity": "-0.673433",
+      "renderCount": "416"
+    },
+    {
+      "label": "backward/4",
+      "engine": "three.js r185",
+      "turnStep": "1.904033",
+      "turnVelocity": "-0.743325",
+      "renderCount": "419"
+    },
+    {
+      "label": "backward/5",
+      "engine": "three.js r185",
+      "turnStep": "1.865793",
+      "turnVelocity": "-0.782175",
+      "renderCount": "422"
+    },
+    {
+      "label": "backward/6",
+      "engine": "three.js r185",
+      "turnStep": "1.819374",
+      "turnVelocity": "-0.806290",
+      "renderCount": "426"
+    },
+    {
+      "label": "backward/7",
+      "engine": "three.js r185",
+      "turnStep": "1.778753",
+      "turnVelocity": "-0.817175",
+      "renderCount": "429"
+    },
+    {
+      "label": "backward/8",
+      "engine": "three.js r185",
+      "turnStep": "1.737721",
+      "turnVelocity": "-0.823225",
+      "renderCount": "432"
+    },
+    {
+      "label": "backward/9",
+      "engine": "three.js r185",
+      "turnStep": "1.696459",
+      "turnVelocity": "-0.826588",
+      "renderCount": "435"
+    },
+    {
+      "label": "backward/10",
+      "engine": "three.js r185",
+      "turnStep": "1.661974",
+      "turnVelocity": "-0.828217",
+      "renderCount": "438"
+    },
+    {
+      "label": "backward/11",
+      "engine": "three.js r185",
+      "turnStep": "1.620524",
+      "turnVelocity": "-0.829363",
+      "renderCount": "441"
+    },
+    {
+      "label": "backward/12",
+      "engine": "three.js r185",
+      "turnStep": "1.579030",
+      "turnVelocity": "-0.830000",
+      "renderCount": "444"
+    },
+    {
+      "label": "backward/13",
+      "engine": "three.js r185",
+      "turnStep": "1.537513",
+      "turnVelocity": "-0.830354",
+      "renderCount": "447"
+    },
+    {
+      "label": "backward/14",
+      "engine": "three.js r185",
+      "turnStep": "1.489059",
+      "turnVelocity": "-0.830574",
+      "renderCount": "451"
+    },
+    {
+      "label": "backward/15",
+      "engine": "three.js r185",
+      "turnStep": "1.447519",
+      "turnVelocity": "-0.830673",
+      "renderCount": "454"
+    },
+    {
+      "label": "backward/16",
+      "engine": "three.js r185",
+      "turnStep": "1.405976",
+      "turnVelocity": "-0.830728",
+      "renderCount": "457"
+    },
+    {
+      "label": "backward/17",
+      "engine": "three.js r185",
+      "turnStep": "1.364430",
+      "turnVelocity": "-0.830759",
+      "renderCount": "460"
+    },
+    {
+      "label": "backward/18",
+      "engine": "three.js r185",
+      "turnStep": "1.329808",
+      "turnVelocity": "-0.830774",
+      "renderCount": "463"
+    },
+    {
+      "label": "backward/19",
+      "engine": "three.js r185",
+      "turnStep": "1.288261",
+      "turnVelocity": "-0.830784",
+      "renderCount": "466"
+    },
+    {
+      "label": "backward/20",
+      "engine": "three.js r185",
+      "turnStep": "1.247165",
+      "turnVelocity": "-0.804168",
+      "renderCount": "469"
+    },
+    {
+      "label": "backward/21",
+      "engine": "three.js r185",
+      "turnStep": "1.208492",
+      "turnVelocity": "-0.738305",
+      "renderCount": "472"
+    },
+    {
+      "label": "backward/22",
+      "engine": "three.js r185",
+      "turnStep": "1.168232",
+      "turnVelocity": "-0.639981",
+      "renderCount": "476"
+    },
+    {
+      "label": "backward/23",
+      "engine": "three.js r185",
+      "turnStep": "1.138444",
+      "turnVelocity": "-0.551734",
+      "renderCount": "479"
+    },
+    {
+      "label": "backward/24",
+      "engine": "three.js r185",
+      "turnStep": "1.112992",
+      "turnVelocity": "-0.467361",
+      "renderCount": "482"
+    },
+    {
+      "label": "backward/25",
+      "engine": "three.js r185",
+      "turnStep": "1.091582",
+      "turnVelocity": "-0.390504",
+      "renderCount": "485"
+    },
+    {
+      "label": "backward/26",
+      "engine": "three.js r185",
+      "turnStep": "1.076524",
+      "turnVelocity": "-0.333367",
+      "renderCount": "488"
+    },
+    {
+      "label": "backward/27",
+      "engine": "three.js r185",
+      "turnStep": "1.061393",
+      "turnVelocity": "-0.273418",
+      "renderCount": "491"
+    },
+    {
+      "label": "backward/28",
+      "engine": "three.js r185",
+      "turnStep": "1.049031",
+      "turnVelocity": "-0.222526",
+      "renderCount": "494"
+    },
+    {
+      "label": "backward/29",
+      "engine": "three.js r185",
+      "turnStep": "1.039002",
+      "turnVelocity": "-0.179930",
+      "renderCount": "497"
+    },
+    {
+      "label": "backward/30",
+      "engine": "three.js r185",
+      "turnStep": "1.029732",
+      "turnVelocity": "-0.139446",
+      "renderCount": "501"
+    },
+    {
+      "label": "backward/31",
+      "engine": "three.js r185",
+      "turnStep": "1.023482",
+      "turnVelocity": "-0.111503",
+      "renderCount": "504"
+    },
+    {
+      "label": "backward/32",
+      "engine": "three.js r185",
+      "turnStep": "1.018494",
+      "turnVelocity": "-0.088791",
+      "renderCount": "507"
+    },
+    {
+      "label": "backward/33",
+      "engine": "three.js r185",
+      "turnStep": "1.014530",
+      "turnVelocity": "-0.070448",
+      "renderCount": "510"
+    },
+    {
+      "label": "backward/34",
+      "engine": "three.js r185",
+      "turnStep": "1.011863",
+      "turnVelocity": "-0.057948",
+      "renderCount": "513"
+    },
+    {
+      "label": "backward/35",
+      "engine": "three.js r185",
+      "turnStep": "1.009283",
+      "turnVelocity": "-0.045716",
+      "renderCount": "516"
+    },
+    {
+      "label": "backward/36",
+      "engine": "three.js r185",
+      "turnStep": "1.007250",
+      "turnVelocity": "-0.035970",
+      "renderCount": "519"
+    },
+    {
+      "label": "backward/37",
+      "engine": "three.js r185",
+      "turnStep": "1.005652",
+      "turnVelocity": "-0.028234",
+      "renderCount": "522"
+    },
+    {
+      "label": "backward/38",
+      "engine": "three.js r185",
+      "turnStep": "1.004219",
+      "turnVelocity": "-0.021227",
+      "renderCount": "526"
+    },
+    {
+      "label": "backward/39",
+      "engine": "three.js r185",
+      "turnStep": "1.003278",
+      "turnVelocity": "-0.016587",
+      "renderCount": "529"
+    },
+    {
+      "label": "backward/40",
+      "engine": "three.js r185",
+      "turnStep": "1.002544",
+      "turnVelocity": "-0.012938",
+      "renderCount": "532"
+    },
+    {
+      "label": "backward/41",
+      "engine": "three.js r185",
+      "turnStep": "1.001971",
+      "turnVelocity": "-0.010075",
+      "renderCount": "535"
+    },
+    {
+      "label": "backward/42",
+      "engine": "three.js r185",
+      "turnStep": "1.001593",
+      "turnVelocity": "-0.008170",
+      "renderCount": "538"
+    },
+    {
+      "label": "backward/43",
+      "engine": "three.js r185",
+      "turnStep": "1.001232",
+      "turnVelocity": "-0.006345",
+      "renderCount": "541"
+    },
+    {
+      "label": "backward/44",
+      "engine": "three.js r185",
+      "turnStep": "1.000951",
+      "turnVelocity": "-0.004921",
+      "renderCount": "544"
+    },
+    {
+      "label": "backward/45",
+      "engine": "three.js r185",
+      "turnStep": "1.000734",
+      "turnVelocity": "-0.003812",
+      "renderCount": "547"
+    },
+    {
+      "label": "backward/46",
+      "engine": "three.js r185",
+      "turnStep": "1.000542",
+      "turnVelocity": "-0.002825",
+      "renderCount": "551"
+    },
+    {
+      "label": "backward/47",
+      "engine": "three.js r185",
+      "turnStep": "1.000418",
+      "turnVelocity": "-0.002183",
+      "renderCount": "554"
+    },
+    {
+      "label": "backward/48",
+      "engine": "three.js r185",
+      "turnStep": "1.000321",
+      "turnVelocity": "-0.001685",
+      "renderCount": "557"
+    },
+    {
+      "label": "backward/49",
+      "engine": "three.js r185",
+      "turnStep": "1.000247",
+      "turnVelocity": "-0.001300",
+      "renderCount": "560"
+    },
+    {
+      "label": "backward/50",
+      "engine": "three.js r185",
+      "turnStep": "1.000198",
+      "turnVelocity": "-0.001046",
+      "renderCount": "563"
+    },
+    {
+      "label": "backward/51",
+      "engine": "three.js r185",
+      "turnStep": "1.000152",
+      "turnVelocity": "-0.000806",
+      "renderCount": "566"
+    },
+    {
+      "label": "backward/52",
+      "engine": "three.js r185",
+      "turnStep": "1.000117",
+      "turnVelocity": "-0.000620",
+      "renderCount": "569"
+    },
+    {
+      "label": "backward/53",
+      "engine": "three.js r185",
+      "turnStep": "1.000090",
+      "turnVelocity": "-0.000476",
+      "renderCount": "572"
+    },
+    {
+      "label": "backward/54",
+      "engine": "three.js r185",
+      "turnStep": "1.000066",
+      "turnVelocity": "-0.000350",
+      "renderCount": "576"
+    },
+    {
+      "label": "backward/55",
+      "engine": "three.js r185",
+      "turnStep": "1.000050",
+      "turnVelocity": "-0.000269",
+      "renderCount": "579"
+    },
+    {
+      "label": "backward/56",
+      "engine": "three.js r185",
+      "turnStep": "1.000039",
+      "turnVelocity": "-0.000206",
+      "renderCount": "582"
+    },
+    {
+      "label": "backward/57",
+      "engine": "three.js r185",
+      "turnStep": "1.000030",
+      "turnVelocity": "-0.000158",
+      "renderCount": "585"
+    },
+    {
+      "label": "backward/58",
+      "engine": "three.js r185",
+      "turnStep": "1.000024",
+      "turnVelocity": "-0.000127",
+      "renderCount": "588"
+    },
+    {
+      "label": "backward/59",
+      "engine": "three.js r185",
+      "turnStep": "1.000018",
+      "turnVelocity": "-0.000097",
+      "renderCount": "591"
+    },
+    {
+      "label": "backward/60",
+      "engine": "three.js r185",
+      "turnStep": "1.000014",
+      "turnVelocity": "-0.000074",
+      "renderCount": "594"
+    },
+    {
+      "label": "backward/61",
+      "engine": "three.js r185",
+      "turnStep": "1.000011",
+      "turnVelocity": "-0.000057",
+      "renderCount": "597"
+    },
+    {
+      "label": "backward/62",
+      "engine": "three.js r185",
+      "turnStep": "1.000008",
+      "turnVelocity": "-0.000042",
+      "renderCount": "601"
+    },
+    {
+      "label": "backward/63",
+      "engine": "three.js r185",
+      "turnStep": "1.000006",
+      "turnVelocity": "-0.000032",
+      "renderCount": "604"
+    },
+    {
+      "label": "backward/64",
+      "engine": "three.js r185",
+      "turnStep": "1.000004",
+      "turnVelocity": "-0.000024",
+      "renderCount": "607"
+    },
+    {
+      "label": "reversal-start",
+      "engine": "three.js r185",
+      "turnStep": "1.510941",
+      "turnVelocity": "0.830574",
+      "renderCount": "651"
+    },
+    {
+      "label": "reversal/0",
+      "engine": "three.js r185",
+      "turnStep": "1.510941",
+      "turnVelocity": "0.830574",
+      "renderCount": "651"
+    },
+    {
+      "label": "reversal/1",
+      "engine": "three.js r185",
+      "turnStep": "1.532232",
+      "turnVelocity": "0.092689",
+      "renderCount": "654"
+    },
+    {
+      "label": "reversal/2",
+      "engine": "three.js r185",
+      "turnStep": "1.525614",
+      "turnVelocity": "-0.317470",
+      "renderCount": "657"
+    },
+    {
+      "label": "reversal/3",
+      "engine": "three.js r185",
+      "turnStep": "1.503482",
+      "turnVelocity": "-0.545461",
+      "renderCount": "660"
+    },
+    {
+      "label": "reversal/4",
+      "engine": "three.js r185",
+      "turnStep": "1.478262",
+      "turnVelocity": "-0.655882",
+      "renderCount": "663"
+    },
+    {
+      "label": "reversal/5",
+      "engine": "three.js r185",
+      "turnStep": "1.443330",
+      "turnVelocity": "-0.733569",
+      "renderCount": "666"
+    },
+    {
+      "label": "reversal/6",
+      "engine": "three.js r185",
+      "turnStep": "1.405460",
+      "turnVelocity": "-0.776753",
+      "renderCount": "669"
+    },
+    {
+      "label": "reversal/7",
+      "engine": "three.js r185",
+      "turnStep": "1.365956",
+      "turnVelocity": "-0.800756",
+      "renderCount": "672"
+    },
+    {
+      "label": "reversal/8",
+      "engine": "three.js r185",
+      "turnStep": "1.318752",
+      "turnVelocity": "-0.815656",
+      "renderCount": "676"
+    },
+    {
+      "label": "reversal/9",
+      "engine": "three.js r185",
+      "turnStep": "1.277783",
+      "turnVelocity": "-0.820946",
+      "renderCount": "679"
+    },
+    {
+      "label": "reversal/10",
+      "engine": "three.js r185",
+      "turnStep": "1.237419",
+      "turnVelocity": "-0.785754",
+      "renderCount": "682"
+    },
+    {
+      "label": "reversal/11",
+      "engine": "three.js r185",
+      "turnStep": "1.199773",
+      "turnVelocity": "-0.716255",
+      "renderCount": "685"
+    },
+    {
+      "label": "reversal/12",
+      "engine": "three.js r185",
+      "turnStep": "1.171363",
+      "turnVelocity": "-0.646455",
+      "renderCount": "688"
+    },
+    {
+      "label": "reversal/13",
+      "engine": "three.js r185",
+      "turnStep": "1.141223",
+      "turnVelocity": "-0.559114",
+      "renderCount": "691"
+    },
+    {
+      "label": "reversal/14",
+      "engine": "three.js r185",
+      "turnStep": "1.115399",
+      "turnVelocity": "-0.474780",
+      "renderCount": "694"
+    },
+    {
+      "label": "reversal/15",
+      "engine": "three.js r185",
+      "turnStep": "1.093627",
+      "turnVelocity": "-0.397474",
+      "renderCount": "697"
+    },
+    {
+      "label": "reversal/16",
+      "engine": "three.js r185",
+      "turnStep": "1.072806",
+      "turnVelocity": "-0.318494",
+      "renderCount": "701"
+    },
+    {
+      "label": "reversal/17",
+      "engine": "three.js r185",
+      "turnStep": "1.058361",
+      "turnVelocity": "-0.260838",
+      "renderCount": "704"
+    },
+    {
+      "label": "reversal/18",
+      "engine": "three.js r185",
+      "turnStep": "1.046575",
+      "turnVelocity": "-0.212026",
+      "renderCount": "707"
+    },
+    {
+      "label": "reversal/19",
+      "engine": "three.js r185",
+      "turnStep": "1.037024",
+      "turnVelocity": "-0.171261",
+      "renderCount": "710"
+    },
+    {
+      "label": "reversal/20",
+      "engine": "three.js r185",
+      "turnStep": "1.030498",
+      "turnVelocity": "-0.142746",
+      "renderCount": "713"
+    },
+    {
+      "label": "reversal/21",
+      "engine": "three.js r185",
+      "turnStep": "1.024098",
+      "turnVelocity": "-0.114221",
+      "renderCount": "716"
+    },
+    {
+      "label": "reversal/22",
+      "engine": "three.js r185",
+      "turnStep": "1.018988",
+      "turnVelocity": "-0.091011",
+      "renderCount": "719"
+    },
+    {
+      "label": "reversal/23",
+      "engine": "three.js r185",
+      "turnStep": "1.014923",
+      "turnVelocity": "-0.072249",
+      "renderCount": "722"
+    },
+    {
+      "label": "reversal/24",
+      "engine": "three.js r185",
+      "turnStep": "1.011234",
+      "turnVelocity": "-0.054961",
+      "renderCount": "726"
+    },
+    {
+      "label": "reversal/25",
+      "engine": "three.js r185",
+      "turnStep": "1.008788",
+      "turnVelocity": "-0.043339",
+      "renderCount": "729"
+    },
+    {
+      "label": "reversal/26",
+      "engine": "three.js r185",
+      "turnStep": "1.006861",
+      "turnVelocity": "-0.034085",
+      "renderCount": "732"
+    },
+    {
+      "label": "reversal/27",
+      "engine": "three.js r185",
+      "turnStep": "1.005348",
+      "turnVelocity": "-0.026743",
+      "renderCount": "735"
+    },
+    {
+      "label": "reversal/28",
+      "engine": "three.js r185",
+      "turnStep": "1.004339",
+      "turnVelocity": "-0.021813",
+      "renderCount": "738"
+    },
+    {
+      "label": "reversal/29",
+      "engine": "three.js r185",
+      "turnStep": "1.003373",
+      "turnVelocity": "-0.017050",
+      "renderCount": "741"
+    },
+    {
+      "label": "reversal/30",
+      "engine": "three.js r185",
+      "turnStep": "1.002618",
+      "turnVelocity": "-0.013303",
+      "renderCount": "744"
+    },
+    {
+      "label": "reversal/31",
+      "engine": "three.js r185",
+      "turnStep": "1.002029",
+      "turnVelocity": "-0.010362",
+      "renderCount": "747"
+    },
+    {
+      "label": "reversal/32",
+      "engine": "three.js r185",
+      "turnStep": "1.001505",
+      "turnVelocity": "-0.007727",
+      "renderCount": "751"
+    },
+    {
+      "label": "reversal/33",
+      "engine": "three.js r185",
+      "turnStep": "1.001164",
+      "turnVelocity": "-0.005999",
+      "renderCount": "754"
+    },
+    {
+      "label": "reversal/34",
+      "engine": "three.js r185",
+      "turnStep": "1.000899",
+      "turnVelocity": "-0.004652",
+      "renderCount": "757"
+    },
+    {
+      "label": "reversal/35",
+      "engine": "three.js r185",
+      "turnStep": "1.000693",
+      "turnVelocity": "-0.003602",
+      "renderCount": "760"
+    },
+    {
+      "label": "reversal/36",
+      "engine": "three.js r185",
+      "turnStep": "1.000558",
+      "turnVelocity": "-0.002909",
+      "renderCount": "763"
+    },
+    {
+      "label": "reversal/37",
+      "engine": "three.js r185",
+      "turnStep": "1.000430",
+      "turnVelocity": "-0.002248",
+      "renderCount": "766"
+    },
+    {
+      "label": "reversal/38",
+      "engine": "three.js r185",
+      "turnStep": "1.000331",
+      "turnVelocity": "-0.001736",
+      "renderCount": "769"
+    },
+    {
+      "label": "reversal/39",
+      "engine": "three.js r185",
+      "turnStep": "1.000255",
+      "turnVelocity": "-0.001339",
+      "renderCount": "772"
+    },
+    {
+      "label": "reversal/40",
+      "engine": "three.js r185",
+      "turnStep": "1.000187",
+      "turnVelocity": "-0.000988",
+      "renderCount": "776"
+    },
+    {
+      "label": "reversal/41",
+      "engine": "three.js r185",
+      "turnStep": "1.000144",
+      "turnVelocity": "-0.000761",
+      "renderCount": "779"
+    },
+    {
+      "label": "reversal/42",
+      "engine": "three.js r185",
+      "turnStep": "1.000110",
+      "turnVelocity": "-0.000585",
+      "renderCount": "782"
+    },
+    {
+      "label": "reversal/43",
+      "engine": "three.js r185",
+      "turnStep": "1.000085",
+      "turnVelocity": "-0.000450",
+      "renderCount": "785"
+    },
+    {
+      "label": "reversal/44",
+      "engine": "three.js r185",
+      "turnStep": "1.000068",
+      "turnVelocity": "-0.000361",
+      "renderCount": "788"
+    },
+    {
+      "label": "reversal/45",
+      "engine": "three.js r185",
+      "turnStep": "1.000052",
+      "turnVelocity": "-0.000277",
+      "renderCount": "791"
+    },
+    {
+      "label": "reversal/46",
+      "engine": "three.js r185",
+      "turnStep": "1.000040",
+      "turnVelocity": "-0.000213",
+      "renderCount": "794"
+    },
+    {
+      "label": "reversal/47",
+      "engine": "three.js r185",
+      "turnStep": "1.000030",
+      "turnVelocity": "-0.000163",
+      "renderCount": "797"
+    },
+    {
+      "label": "reversal/48",
+      "engine": "three.js r185",
+      "turnStep": "1.000022",
+      "turnVelocity": "-0.000120",
+      "renderCount": "801"
+    },
+    {
+      "label": "reversal/49",
+      "engine": "three.js r185",
+      "turnStep": "1.000017",
+      "turnVelocity": "-0.000092",
+      "renderCount": "804"
+    },
+    {
+      "label": "reversal/50",
+      "engine": "three.js r185",
+      "turnStep": "1.000013",
+      "turnVelocity": "-0.000070",
+      "renderCount": "807"
+    },
+    {
+      "label": "reversal/51",
+      "engine": "three.js r185",
+      "turnStep": "1.000010",
+      "turnVelocity": "-0.000054",
+      "renderCount": "810"
+    },
+    {
+      "label": "reversal/52",
+      "engine": "three.js r185",
+      "turnStep": "1.000008",
+      "turnVelocity": "-0.000043",
+      "renderCount": "813"
+    },
+    {
+      "label": "reversal/53",
+      "engine": "three.js r185",
+      "turnStep": "1.000006",
+      "turnVelocity": "-0.000033",
+      "renderCount": "816"
+    },
+    {
+      "label": "reversal/54",
+      "engine": "three.js r185",
+      "turnStep": "1.000005",
+      "turnVelocity": "-0.000025",
+      "renderCount": "819"
+    },
+    {
+      "label": "reversal/55",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "reversal/56",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "reversal/57",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "reversal/58",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "reversal/59",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "reversal/60",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "reversal/61",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "reversal/62",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "reversal/63",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "reversal/64",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "rapid/0",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "822"
+    },
+    {
+      "label": "rapid/1",
+      "engine": "three.js r185",
+      "turnStep": "1.007243",
+      "turnVelocity": "0.321508",
+      "renderCount": "825"
+    },
+    {
+      "label": "rapid/2",
+      "engine": "three.js r185",
+      "turnStep": "1.029528",
+      "turnVelocity": "0.547705",
+      "renderCount": "828"
+    },
+    {
+      "label": "rapid/3",
+      "engine": "three.js r185",
+      "turnStep": "1.060368",
+      "turnVelocity": "0.673438",
+      "renderCount": "831"
+    },
+    {
+      "label": "rapid/4",
+      "engine": "three.js r185",
+      "turnStep": "1.089806",
+      "turnVelocity": "0.734334",
+      "renderCount": "834"
+    },
+    {
+      "label": "rapid/5",
+      "engine": "three.js r185",
+      "turnStep": "1.127705",
+      "turnVelocity": "0.777178",
+      "renderCount": "837"
+    },
+    {
+      "label": "rapid/6",
+      "engine": "three.js r185",
+      "turnStep": "1.167225",
+      "turnVelocity": "0.800992",
+      "renderCount": "840"
+    },
+    {
+      "label": "rapid/7",
+      "engine": "three.js r185",
+      "turnStep": "1.207646",
+      "turnVelocity": "0.814230",
+      "renderCount": "843"
+    },
+    {
+      "label": "rapid/8",
+      "engine": "three.js r185",
+      "turnStep": "1.255419",
+      "turnVelocity": "0.822447",
+      "renderCount": "847"
+    },
+    {
+      "label": "rapid/9",
+      "engine": "three.js r185",
+      "turnStep": "1.296651",
+      "turnVelocity": "0.826156",
+      "renderCount": "850"
+    },
+    {
+      "label": "rapid/10",
+      "engine": "three.js r185",
+      "turnStep": "1.338023",
+      "turnVelocity": "0.828217",
+      "renderCount": "853"
+    },
+    {
+      "label": "rapid/11",
+      "engine": "three.js r185",
+      "turnStep": "1.379473",
+      "turnVelocity": "0.829363",
+      "renderCount": "856"
+    },
+    {
+      "label": "rapid/12",
+      "engine": "three.js r185",
+      "turnStep": "1.414049",
+      "turnVelocity": "0.829918",
+      "renderCount": "859"
+    },
+    {
+      "label": "rapid/13",
+      "engine": "three.js r185",
+      "turnStep": "1.455564",
+      "turnVelocity": "0.830309",
+      "renderCount": "862"
+    },
+    {
+      "label": "rapid/14",
+      "engine": "three.js r185",
+      "turnStep": "1.497094",
+      "turnVelocity": "0.830526",
+      "renderCount": "865"
+    },
+    {
+      "label": "rapid/15",
+      "engine": "three.js r185",
+      "turnStep": "1.538631",
+      "turnVelocity": "0.830646",
+      "renderCount": "868"
+    },
+    {
+      "label": "rapid/16",
+      "engine": "three.js r185",
+      "turnStep": "1.587098",
+      "turnVelocity": "0.830721",
+      "renderCount": "872"
+    },
+    {
+      "label": "rapid/17",
+      "engine": "three.js r185",
+      "turnStep": "1.628643",
+      "turnVelocity": "0.830755",
+      "renderCount": "875"
+    },
+    {
+      "label": "rapid/18",
+      "engine": "three.js r185",
+      "turnStep": "1.670189",
+      "turnVelocity": "0.830774",
+      "renderCount": "878"
+    },
+    {
+      "label": "rapid/19",
+      "engine": "three.js r185",
+      "turnStep": "1.711736",
+      "turnVelocity": "0.830784",
+      "renderCount": "881"
+    },
+    {
+      "label": "rapid/20",
+      "engine": "three.js r185",
+      "turnStep": "1.746359",
+      "turnVelocity": "0.830789",
+      "renderCount": "884"
+    },
+    {
+      "label": "rapid/21",
+      "engine": "three.js r185",
+      "turnStep": "1.787907",
+      "turnVelocity": "0.830793",
+      "renderCount": "887"
+    },
+    {
+      "label": "rapid/22",
+      "engine": "three.js r185",
+      "turnStep": "1.829454",
+      "turnVelocity": "0.830795",
+      "renderCount": "890"
+    },
+    {
+      "label": "rapid/23",
+      "engine": "three.js r185",
+      "turnStep": "1.871002",
+      "turnVelocity": "0.830796",
+      "renderCount": "893"
+    },
+    {
+      "label": "rapid/24",
+      "engine": "three.js r185",
+      "turnStep": "1.919475",
+      "turnVelocity": "0.830797",
+      "renderCount": "897"
+    },
+    {
+      "label": "rapid/25",
+      "engine": "three.js r185",
+      "turnStep": "1.961023",
+      "turnVelocity": "0.830797",
+      "renderCount": "900"
+    },
+    {
+      "label": "rapid/26",
+      "engine": "three.js r185",
+      "turnStep": "2.002571",
+      "turnVelocity": "0.830797",
+      "renderCount": "903"
+    },
+    {
+      "label": "rapid/27",
+      "engine": "three.js r185",
+      "turnStep": "2.044119",
+      "turnVelocity": "0.830797",
+      "renderCount": "906"
+    },
+    {
+      "label": "rapid/28",
+      "engine": "three.js r185",
+      "turnStep": "2.078742",
+      "turnVelocity": "0.830797",
+      "renderCount": "909"
+    },
+    {
+      "label": "rapid/29",
+      "engine": "three.js r185",
+      "turnStep": "2.120290",
+      "turnVelocity": "0.830797",
+      "renderCount": "912"
+    },
+    {
+      "label": "rapid/30",
+      "engine": "three.js r185",
+      "turnStep": "2.161838",
+      "turnVelocity": "0.830797",
+      "renderCount": "915"
+    },
+    {
+      "label": "rapid/31",
+      "engine": "three.js r185",
+      "turnStep": "2.203386",
+      "turnVelocity": "0.830797",
+      "renderCount": "918"
+    },
+    {
+      "label": "rapid/32",
+      "engine": "three.js r185",
+      "turnStep": "2.251859",
+      "turnVelocity": "0.830797",
+      "renderCount": "922"
+    },
+    {
+      "label": "rapid/33",
+      "engine": "three.js r185",
+      "turnStep": "2.293406",
+      "turnVelocity": "0.830797",
+      "renderCount": "925"
+    },
+    {
+      "label": "rapid/34",
+      "engine": "three.js r185",
+      "turnStep": "2.334954",
+      "turnVelocity": "0.830797",
+      "renderCount": "928"
+    },
+    {
+      "label": "rapid/35",
+      "engine": "three.js r185",
+      "turnStep": "2.376502",
+      "turnVelocity": "0.830797",
+      "renderCount": "931"
+    },
+    {
+      "label": "rapid/36",
+      "engine": "three.js r185",
+      "turnStep": "2.411126",
+      "turnVelocity": "0.830797",
+      "renderCount": "934"
+    },
+    {
+      "label": "rapid/37",
+      "engine": "three.js r185",
+      "turnStep": "2.452674",
+      "turnVelocity": "0.830797",
+      "renderCount": "937"
+    },
+    {
+      "label": "rapid/38",
+      "engine": "three.js r185",
+      "turnStep": "2.494222",
+      "turnVelocity": "0.830797",
+      "renderCount": "940"
+    },
+    {
+      "label": "rapid/39",
+      "engine": "three.js r185",
+      "turnStep": "2.535770",
+      "turnVelocity": "0.830797",
+      "renderCount": "943"
+    },
+    {
+      "label": "rapid/40",
+      "engine": "three.js r185",
+      "turnStep": "2.584242",
+      "turnVelocity": "0.830797",
+      "renderCount": "947"
+    },
+    {
+      "label": "rapid/41",
+      "engine": "three.js r185",
+      "turnStep": "2.625790",
+      "turnVelocity": "0.830797",
+      "renderCount": "950"
+    },
+    {
+      "label": "rapid/42",
+      "engine": "three.js r185",
+      "turnStep": "2.667338",
+      "turnVelocity": "0.830797",
+      "renderCount": "953"
+    },
+    {
+      "label": "rapid/43",
+      "engine": "three.js r185",
+      "turnStep": "2.708886",
+      "turnVelocity": "0.830797",
+      "renderCount": "956"
+    },
+    {
+      "label": "rapid/44",
+      "engine": "three.js r185",
+      "turnStep": "2.743509",
+      "turnVelocity": "0.830797",
+      "renderCount": "959"
+    },
+    {
+      "label": "rapid/45",
+      "engine": "three.js r185",
+      "turnStep": "2.785057",
+      "turnVelocity": "0.830797",
+      "renderCount": "962"
+    },
+    {
+      "label": "rapid/46",
+      "engine": "three.js r185",
+      "turnStep": "2.826605",
+      "turnVelocity": "0.830797",
+      "renderCount": "965"
+    },
+    {
+      "label": "rapid/47",
+      "engine": "three.js r185",
+      "turnStep": "2.868153",
+      "turnVelocity": "0.830797",
+      "renderCount": "968"
+    },
+    {
+      "label": "rapid/48",
+      "engine": "three.js r185",
+      "turnStep": "2.916626",
+      "turnVelocity": "0.830797",
+      "renderCount": "972"
+    },
+    {
+      "label": "rapid/49",
+      "engine": "three.js r185",
+      "turnStep": "2.958174",
+      "turnVelocity": "0.830797",
+      "renderCount": "975"
+    },
+    {
+      "label": "rapid/50",
+      "engine": "three.js r185",
+      "turnStep": "2.999722",
+      "turnVelocity": "0.830797",
+      "renderCount": "978"
+    },
+    {
+      "label": "rapid/51",
+      "engine": "three.js r185",
+      "turnStep": "3.041270",
+      "turnVelocity": "0.830797",
+      "renderCount": "981"
+    },
+    {
+      "label": "rapid/52",
+      "engine": "three.js r185",
+      "turnStep": "3.075893",
+      "turnVelocity": "0.830797",
+      "renderCount": "984"
+    },
+    {
+      "label": "rapid/53",
+      "engine": "three.js r185",
+      "turnStep": "3.117441",
+      "turnVelocity": "0.830797",
+      "renderCount": "987"
+    },
+    {
+      "label": "rapid/54",
+      "engine": "three.js r185",
+      "turnStep": "3.158989",
+      "turnVelocity": "0.830797",
+      "renderCount": "990"
+    },
+    {
+      "label": "rapid/55",
+      "engine": "three.js r185",
+      "turnStep": "3.200537",
+      "turnVelocity": "0.830797",
+      "renderCount": "993"
+    },
+    {
+      "label": "rapid/56",
+      "engine": "three.js r185",
+      "turnStep": "3.249010",
+      "turnVelocity": "0.830797",
+      "renderCount": "997"
+    },
+    {
+      "label": "rapid/57",
+      "engine": "three.js r185",
+      "turnStep": "3.290558",
+      "turnVelocity": "0.830797",
+      "renderCount": "1000"
+    },
+    {
+      "label": "rapid/58",
+      "engine": "three.js r185",
+      "turnStep": "3.332106",
+      "turnVelocity": "0.830797",
+      "renderCount": "1003"
+    },
+    {
+      "label": "rapid/59",
+      "engine": "three.js r185",
+      "turnStep": "3.373653",
+      "turnVelocity": "0.830797",
+      "renderCount": "1006"
+    },
+    {
+      "label": "rapid/60",
+      "engine": "three.js r185",
+      "turnStep": "3.408277",
+      "turnVelocity": "0.830797",
+      "renderCount": "1009"
+    },
+    {
+      "label": "rapid/61",
+      "engine": "three.js r185",
+      "turnStep": "3.449825",
+      "turnVelocity": "0.830797",
+      "renderCount": "1012"
+    },
+    {
+      "label": "rapid/62",
+      "engine": "three.js r185",
+      "turnStep": "3.491373",
+      "turnVelocity": "0.830797",
+      "renderCount": "1015"
+    },
+    {
+      "label": "rapid/63",
+      "engine": "three.js r185",
+      "turnStep": "3.532921",
+      "turnVelocity": "0.830797",
+      "renderCount": "1018"
+    },
+    {
+      "label": "rapid/64",
+      "engine": "three.js r185",
+      "turnStep": "3.581393",
+      "turnVelocity": "0.830797",
+      "renderCount": "1022"
+    },
+    {
+      "label": "rapid/65",
+      "engine": "three.js r185",
+      "turnStep": "3.622941",
+      "turnVelocity": "0.830797",
+      "renderCount": "1025"
+    },
+    {
+      "label": "rapid/66",
+      "engine": "three.js r185",
+      "turnStep": "3.664489",
+      "turnVelocity": "0.830797",
+      "renderCount": "1028"
+    },
+    {
+      "label": "rapid/67",
+      "engine": "three.js r185",
+      "turnStep": "3.706037",
+      "turnVelocity": "0.830797",
+      "renderCount": "1031"
+    },
+    {
+      "label": "rapid/68",
+      "engine": "three.js r185",
+      "turnStep": "3.740660",
+      "turnVelocity": "0.830797",
+      "renderCount": "1034"
+    },
+    {
+      "label": "rapid/69",
+      "engine": "three.js r185",
+      "turnStep": "3.782208",
+      "turnVelocity": "0.830797",
+      "renderCount": "1037"
+    },
+    {
+      "label": "rapid/70",
+      "engine": "three.js r185",
+      "turnStep": "3.823756",
+      "turnVelocity": "0.830797",
+      "renderCount": "1040"
+    },
+    {
+      "label": "rapid/71",
+      "engine": "three.js r185",
+      "turnStep": "3.865304",
+      "turnVelocity": "0.830797",
+      "renderCount": "1043"
+    },
+    {
+      "label": "rapid/72",
+      "engine": "three.js r185",
+      "turnStep": "3.913777",
+      "turnVelocity": "0.830797",
+      "renderCount": "1047"
+    },
+    {
+      "label": "rapid/73",
+      "engine": "three.js r185",
+      "turnStep": "3.955325",
+      "turnVelocity": "0.830797",
+      "renderCount": "1050"
+    },
+    {
+      "label": "rapid/74",
+      "engine": "three.js r185",
+      "turnStep": "3.996873",
+      "turnVelocity": "0.830797",
+      "renderCount": "1053"
+    },
+    {
+      "label": "rapid/75",
+      "engine": "three.js r185",
+      "turnStep": "4.038421",
+      "turnVelocity": "0.830797",
+      "renderCount": "1056"
+    },
+    {
+      "label": "rapid/76",
+      "engine": "three.js r185",
+      "turnStep": "4.073044",
+      "turnVelocity": "0.830797",
+      "renderCount": "1059"
+    },
+    {
+      "label": "rapid/77",
+      "engine": "three.js r185",
+      "turnStep": "4.114592",
+      "turnVelocity": "0.830797",
+      "renderCount": "1062"
+    },
+    {
+      "label": "rapid/78",
+      "engine": "three.js r185",
+      "turnStep": "4.156140",
+      "turnVelocity": "0.830797",
+      "renderCount": "1065"
+    },
+    {
+      "label": "rapid/79",
+      "engine": "three.js r185",
+      "turnStep": "4.197688",
+      "turnVelocity": "0.830797",
+      "renderCount": "1068"
+    },
+    {
+      "label": "rapid/80",
+      "engine": "three.js r185",
+      "turnStep": "4.246161",
+      "turnVelocity": "0.830797",
+      "renderCount": "1072"
+    },
+    {
+      "label": "rapid/81",
+      "engine": "three.js r185",
+      "turnStep": "4.287709",
+      "turnVelocity": "0.830797",
+      "renderCount": "1075"
+    },
+    {
+      "label": "rapid/82",
+      "engine": "three.js r185",
+      "turnStep": "4.329257",
+      "turnVelocity": "0.830797",
+      "renderCount": "1078"
+    },
+    {
+      "label": "rapid/83",
+      "engine": "three.js r185",
+      "turnStep": "4.370805",
+      "turnVelocity": "0.830797",
+      "renderCount": "1081"
+    },
+    {
+      "label": "rapid/84",
+      "engine": "three.js r185",
+      "turnStep": "4.405428",
+      "turnVelocity": "0.830797",
+      "renderCount": "1084"
+    },
+    {
+      "label": "rapid/85",
+      "engine": "three.js r185",
+      "turnStep": "4.446976",
+      "turnVelocity": "0.830797",
+      "renderCount": "1087"
+    },
+    {
+      "label": "rapid/86",
+      "engine": "three.js r185",
+      "turnStep": "4.488524",
+      "turnVelocity": "0.830797",
+      "renderCount": "1090"
+    },
+    {
+      "label": "rapid/87",
+      "engine": "three.js r185",
+      "turnStep": "4.530072",
+      "turnVelocity": "0.830797",
+      "renderCount": "1093"
+    },
+    {
+      "label": "rapid/88",
+      "engine": "three.js r185",
+      "turnStep": "4.578544",
+      "turnVelocity": "0.830797",
+      "renderCount": "1097"
+    },
+    {
+      "label": "rapid/89",
+      "engine": "three.js r185",
+      "turnStep": "4.620092",
+      "turnVelocity": "0.830797",
+      "renderCount": "1100"
+    },
+    {
+      "label": "rapid/90",
+      "engine": "three.js r185",
+      "turnStep": "4.661640",
+      "turnVelocity": "0.830797",
+      "renderCount": "1103"
+    },
+    {
+      "label": "rapid/91",
+      "engine": "three.js r185",
+      "turnStep": "4.703188",
+      "turnVelocity": "0.830797",
+      "renderCount": "1106"
+    },
+    {
+      "label": "rapid/92",
+      "engine": "three.js r185",
+      "turnStep": "4.737812",
+      "turnVelocity": "0.830797",
+      "renderCount": "1109"
+    },
+    {
+      "label": "rapid/93",
+      "engine": "three.js r185",
+      "turnStep": "4.779360",
+      "turnVelocity": "0.830797",
+      "renderCount": "1112"
+    },
+    {
+      "label": "rapid/94",
+      "engine": "three.js r185",
+      "turnStep": "4.820907",
+      "turnVelocity": "0.830797",
+      "renderCount": "1115"
+    },
+    {
+      "label": "rapid/95",
+      "engine": "three.js r185",
+      "turnStep": "4.862455",
+      "turnVelocity": "0.830797",
+      "renderCount": "1118"
+    },
+    {
+      "label": "rapid/96",
+      "engine": "three.js r185",
+      "turnStep": "4.910928",
+      "turnVelocity": "0.830797",
+      "renderCount": "1122"
+    },
+    {
+      "label": "rapid/97",
+      "engine": "three.js r185",
+      "turnStep": "4.952476",
+      "turnVelocity": "0.830797",
+      "renderCount": "1125"
+    },
+    {
+      "label": "rapid/98",
+      "engine": "three.js r185",
+      "turnStep": "4.994024",
+      "turnVelocity": "0.830797",
+      "renderCount": "1128"
+    },
+    {
+      "label": "rapid/99",
+      "engine": "three.js r185",
+      "turnStep": "5.035572",
+      "turnVelocity": "0.830797",
+      "renderCount": "1131"
+    },
+    {
+      "label": "rapid/100",
+      "engine": "three.js r185",
+      "turnStep": "5.070195",
+      "turnVelocity": "0.830797",
+      "renderCount": "1134"
+    },
+    {
+      "label": "rapid/101",
+      "engine": "three.js r185",
+      "turnStep": "5.111743",
+      "turnVelocity": "0.830797",
+      "renderCount": "1137"
+    },
+    {
+      "label": "rapid/102",
+      "engine": "three.js r185",
+      "turnStep": "5.153291",
+      "turnVelocity": "0.830797",
+      "renderCount": "1140"
+    },
+    {
+      "label": "rapid/103",
+      "engine": "three.js r185",
+      "turnStep": "5.194839",
+      "turnVelocity": "0.830797",
+      "renderCount": "1143"
+    },
+    {
+      "label": "rapid/104",
+      "engine": "three.js r185",
+      "turnStep": "5.243312",
+      "turnVelocity": "0.830797",
+      "renderCount": "1147"
+    },
+    {
+      "label": "rapid/105",
+      "engine": "three.js r185",
+      "turnStep": "5.284860",
+      "turnVelocity": "0.830797",
+      "renderCount": "1150"
+    },
+    {
+      "label": "rapid/106",
+      "engine": "three.js r185",
+      "turnStep": "5.326408",
+      "turnVelocity": "0.830797",
+      "renderCount": "1153"
+    },
+    {
+      "label": "rapid/107",
+      "engine": "three.js r185",
+      "turnStep": "5.367956",
+      "turnVelocity": "0.830797",
+      "renderCount": "1156"
+    },
+    {
+      "label": "rapid/108",
+      "engine": "three.js r185",
+      "turnStep": "5.402579",
+      "turnVelocity": "0.830797",
+      "renderCount": "1159"
+    },
+    {
+      "label": "rapid/109",
+      "engine": "three.js r185",
+      "turnStep": "5.444127",
+      "turnVelocity": "0.830797",
+      "renderCount": "1162"
+    },
+    {
+      "label": "rapid/110",
+      "engine": "three.js r185",
+      "turnStep": "5.485675",
+      "turnVelocity": "0.830797",
+      "renderCount": "1165"
+    },
+    {
+      "label": "rapid/111",
+      "engine": "three.js r185",
+      "turnStep": "5.527223",
+      "turnVelocity": "0.830797",
+      "renderCount": "1168"
+    },
+    {
+      "label": "rapid/112",
+      "engine": "three.js r185",
+      "turnStep": "5.575695",
+      "turnVelocity": "0.830797",
+      "renderCount": "1172"
+    },
+    {
+      "label": "rapid/113",
+      "engine": "three.js r185",
+      "turnStep": "5.617243",
+      "turnVelocity": "0.830797",
+      "renderCount": "1175"
+    },
+    {
+      "label": "rapid/114",
+      "engine": "three.js r185",
+      "turnStep": "5.658791",
+      "turnVelocity": "0.830797",
+      "renderCount": "1178"
+    },
+    {
+      "label": "rapid/115",
+      "engine": "three.js r185",
+      "turnStep": "5.700339",
+      "turnVelocity": "0.830797",
+      "renderCount": "1181"
+    },
+    {
+      "label": "rapid/116",
+      "engine": "three.js r185",
+      "turnStep": "5.734884",
+      "turnVelocity": "0.822376",
+      "renderCount": "1184"
+    },
+    {
+      "label": "rapid/117",
+      "engine": "three.js r185",
+      "turnStep": "5.774862",
+      "turnVelocity": "0.770570",
+      "renderCount": "1187"
+    },
+    {
+      "label": "rapid/118",
+      "engine": "three.js r185",
+      "turnStep": "5.811513",
+      "turnVelocity": "0.692732",
+      "renderCount": "1190"
+    },
+    {
+      "label": "rapid/119",
+      "engine": "three.js r185",
+      "turnStep": "5.843978",
+      "turnVelocity": "0.605252",
+      "renderCount": "1193"
+    },
+    {
+      "label": "rapid/120",
+      "engine": "three.js r185",
+      "turnStep": "5.876300",
+      "turnVelocity": "0.503805",
+      "renderCount": "1197"
+    },
+    {
+      "label": "rapid/121",
+      "engine": "three.js r185",
+      "turnStep": "5.899446",
+      "turnVelocity": "0.423341",
+      "renderCount": "1200"
+    },
+    {
+      "label": "rapid/122",
+      "engine": "three.js r185",
+      "turnStep": "5.918778",
+      "turnVelocity": "0.351462",
+      "renderCount": "1203"
+    },
+    {
+      "label": "rapid/123",
+      "engine": "three.js r185",
+      "turnStep": "5.934749",
+      "turnVelocity": "0.288944",
+      "renderCount": "1206"
+    },
+    {
+      "label": "rapid/124",
+      "engine": "three.js r185",
+      "turnStep": "5.945828",
+      "turnVelocity": "0.243901",
+      "renderCount": "1209"
+    },
+    {
+      "label": "rapid/125",
+      "engine": "three.js r185",
+      "turnStep": "5.956835",
+      "turnVelocity": "0.197756",
+      "renderCount": "1212"
+    },
+    {
+      "label": "rapid/126",
+      "engine": "three.js r185",
+      "turnStep": "5.965734",
+      "turnVelocity": "0.159387",
+      "renderCount": "1215"
+    },
+    {
+      "label": "rapid/127",
+      "engine": "three.js r185",
+      "turnStep": "5.972887",
+      "turnVelocity": "0.127804",
+      "renderCount": "1218"
+    },
+    {
+      "label": "rapid/128",
+      "engine": "three.js r185",
+      "turnStep": "5.979445",
+      "turnVelocity": "0.098223",
+      "renderCount": "1222"
+    },
+    {
+      "label": "rapid/129",
+      "engine": "three.js r185",
+      "turnStep": "5.983834",
+      "turnVelocity": "0.078053",
+      "renderCount": "1225"
+    },
+    {
+      "label": "rapid/130",
+      "engine": "three.js r185",
+      "turnStep": "5.987316",
+      "turnVelocity": "0.061813",
+      "renderCount": "1228"
+    },
+    {
+      "label": "rapid/131",
+      "engine": "three.js r185",
+      "turnStep": "5.990069",
+      "turnVelocity": "0.048804",
+      "renderCount": "1231"
+    },
+    {
+      "label": "rapid/132",
+      "engine": "three.js r185",
+      "turnStep": "5.991913",
+      "turnVelocity": "0.039996",
+      "renderCount": "1234"
+    },
+    {
+      "label": "rapid/133",
+      "engine": "three.js r185",
+      "turnStep": "5.993690",
+      "turnVelocity": "0.031426",
+      "renderCount": "1237"
+    },
+    {
+      "label": "rapid/134",
+      "engine": "three.js r185",
+      "turnStep": "5.995085",
+      "turnVelocity": "0.024637",
+      "renderCount": "1240"
+    },
+    {
+      "label": "rapid/135",
+      "engine": "three.js r185",
+      "turnStep": "5.996178",
+      "turnVelocity": "0.019274",
+      "renderCount": "1243"
+    },
+    {
+      "label": "rapid/136",
+      "engine": "three.js r185",
+      "turnStep": "5.997155",
+      "turnVelocity": "0.014440",
+      "renderCount": "1247"
+    },
+    {
+      "label": "rapid/137",
+      "engine": "three.js r185",
+      "turnStep": "5.997794",
+      "turnVelocity": "0.011253",
+      "renderCount": "1250"
+    },
+    {
+      "label": "rapid/138",
+      "engine": "three.js r185",
+      "turnStep": "5.998291",
+      "turnVelocity": "0.008755",
+      "renderCount": "1253"
+    },
+    {
+      "label": "rapid/139",
+      "engine": "three.js r185",
+      "turnStep": "5.998678",
+      "turnVelocity": "0.006802",
+      "renderCount": "1256"
+    },
+    {
+      "label": "rapid/140",
+      "engine": "three.js r185",
+      "turnStep": "5.998934",
+      "turnVelocity": "0.005506",
+      "renderCount": "1259"
+    },
+    {
+      "label": "rapid/141",
+      "engine": "three.js r185",
+      "turnStep": "5.999177",
+      "turnVelocity": "0.004267",
+      "renderCount": "1262"
+    },
+    {
+      "label": "rapid/142",
+      "engine": "three.js r185",
+      "turnStep": "5.999365",
+      "turnVelocity": "0.003303",
+      "renderCount": "1265"
+    },
+    {
+      "label": "rapid/143",
+      "engine": "three.js r185",
+      "turnStep": "5.999511",
+      "turnVelocity": "0.002554",
+      "renderCount": "1268"
+    },
+    {
+      "label": "rapid/144",
+      "engine": "three.js r185",
+      "turnStep": "5.999639",
+      "turnVelocity": "0.001890",
+      "renderCount": "1272"
+    },
+    {
+      "label": "rapid/145",
+      "engine": "three.js r185",
+      "turnStep": "5.999722",
+      "turnVelocity": "0.001458",
+      "renderCount": "1275"
+    },
+    {
+      "label": "rapid/146",
+      "engine": "three.js r185",
+      "turnStep": "5.999787",
+      "turnVelocity": "0.001124",
+      "renderCount": "1278"
+    },
+    {
+      "label": "rapid/147",
+      "engine": "three.js r185",
+      "turnStep": "5.999836",
+      "turnVelocity": "0.000866",
+      "renderCount": "1281"
+    },
+    {
+      "label": "rapid/148",
+      "engine": "three.js r185",
+      "turnStep": "5.999869",
+      "turnVelocity": "0.000696",
+      "renderCount": "1284"
+    },
+    {
+      "label": "rapid/149",
+      "engine": "three.js r185",
+      "turnStep": "5.999899",
+      "turnVelocity": "0.000535",
+      "renderCount": "1287"
+    },
+    {
+      "label": "rapid/150",
+      "engine": "three.js r185",
+      "turnStep": "5.999923",
+      "turnVelocity": "0.000411",
+      "renderCount": "1290"
+    },
+    {
+      "label": "page-5",
+      "engine": "three.js r185",
+      "turnStep": "6.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1326"
+    },
+    {
+      "label": "drag-horizontal",
+      "engine": "three.js r185",
+      "turnStep": "6.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1327"
+    },
+    {
+      "label": "drag-reversed",
+      "engine": "three.js r185",
+      "turnStep": "6.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1328"
+    },
+    {
+      "label": "drag-diagonal",
+      "engine": "three.js r185",
+      "turnStep": "6.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1329"
+    },
+    {
+      "label": "drag-pole",
+      "engine": "three.js r185",
+      "turnStep": "6.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1330"
+    },
+    {
+      "label": "drag-outside",
+      "engine": "three.js r185",
+      "turnStep": "6.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1331"
+    },
+    {
+      "label": "reset",
+      "engine": "three.js r185",
+      "turnStep": "6.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1332"
+    },
+    {
+      "label": "keyboard-orbit",
+      "engine": "three.js r185",
+      "turnStep": "6.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1333"
+    },
+    {
+      "label": "mobile-page-5",
+      "engine": "three.js r185",
+      "turnStep": "6.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1335"
+    },
+    {
+      "label": "mobile-reduced-closed",
+      "engine": "three.js r185",
+      "turnStep": "0.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1336"
+    },
+    {
+      "label": "mobile-reduced-cover",
+      "engine": "three.js r185",
+      "turnStep": "1.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1337"
+    },
+    {
+      "label": "mobile-reduced-leaf",
+      "engine": "three.js r185",
+      "turnStep": "2.000000",
+      "turnVelocity": "0.000000",
+      "renderCount": "1338"
+    }
+  ]
+}

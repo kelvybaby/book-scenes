@@ -1,0 +1,228 @@
+--- EarlyPageOpenRig.restart
++++ src/labs/book-model/EarlyPageOpenRig.ts
+@@ -14,6 +14,9 @@
+ const MAX_OPEN_PAGES = 5
+ const PAGE_FRACTION = MAX_OPEN_PAGES / TOTAL_PAGES
+ const SINGLE_PAGE_THICKNESS = PAGE_THICKNESS / TOTAL_PAGES
++// Accounts for the finite root fan while keeping the page-5 free edge at the
++// approved 10 mm height above BOTTOM. It changes slope, not sheet length.
++const OPEN_LEAF_DROP = -0.01264798
+ 
+ const FRONT_COVER_NAME = 'FrontCover_AnimationReady'
+ const BACK_COVER_NAME = 'BackCover_AnimationReady'
+@@ -161,19 +164,28 @@
+   }
+ 
+   const upper = points[points.length - 1]
++  const turn = smootherStep(coverProgress)
++  const shoulderAngle = Math.PI * (turn - 0.5)
++  const shoulderLength = fillet * Math.PI * 0.5
+   for (let index = 1; index <= filletSegments; index += 1) {
+     const s = index / filletSegments
+-    const theta = Math.PI * 0.5 * s
++    const theta = Math.PI * 0.5 + shoulderAngle * s
++    // The same finite shoulder curls right when closed and left when open.
++    // A fixed left-facing shoulder made the closed cover too short and left
++    // its root below the crowned sheets. The straight limit is continuous.
++    const dx = Math.abs(shoulderAngle) < 0.000001 ? 0 :
++      shoulderLength * (Math.sin(theta) - 1) / shoulderAngle
++    const dy = Math.abs(shoulderAngle) < 0.000001 ? shoulderLength * s :
++      -shoulderLength * Math.cos(theta) / shoulderAngle
+     points.push({
+-      x: upper.x - fillet + fillet * Math.cos(theta),
+-      y: upper.y + fillet * Math.sin(theta) + COVER_THICKNESS * smoothstep(s),
++      x: upper.x + dx,
++      y: upper.y + dy + COVER_THICKNESS * smoothstep(s),
+       region: 2,
+       u: t1 + (s * fillet) / BOOK_THICKNESS,
+     })
+   }
+ 
+   const root = points[points.length - 1]
+-  const turn = smootherStep(coverProgress)
+   let x = root.x
+   let y = root.y
+   const segmentLength = BOOK_WIDTH / coverSegments
+@@ -184,7 +196,11 @@
+       0.0084 * Math.PI * Math.cos(Math.PI * u)
+     // Card stock carries a broad, restrained bend, rather than the travelling
+     // curl of a paper leaf. Tangent integration preserves the wrapper length.
+-    const angle = Math.PI * turn - turn * Math.atan(slope / BOOK_WIDTH) +
++    const closedSlope = 0.00105 * (9 * Math.exp(-u * 9) * (1 - u) ** 1.7 -
++      1.7 * (1 - Math.exp(-u * 9)) * (1 - u) ** 0.7) +
++      0.00069 * Math.PI * Math.cos(Math.PI * u)
++    const angle = (1 - turn) * Math.atan(closedSlope / BOOK_WIDTH) +
++      Math.PI * turn - turn * Math.atan(slope / BOOK_WIDTH) +
+       0.08 * Math.sin(Math.PI * turn) * Math.sin(Math.PI * u)
+     x += segmentLength * Math.cos(angle)
+     y += segmentLength * Math.sin(angle)
+@@ -301,9 +317,10 @@
+   geometry.computeVertexNormals()
+ }
+ 
+-const createGridSolidGeometry = (widthSegments: number, depthSegments: number) => {
++const createGridSolidGeometry = (widthSegments: number, depthSegments: number, widthExponent = 1) => {
+   const row = widthSegments + 1
+   const layerSize = row * (depthSegments + 1)
++  const columnU = Float64Array.from({ length: row }, (_, i) => (i / widthSegments) ** widthExponent)
+   const edgeSources: number[] = []
+   const edgeUvs: number[] = []
+   const geometry = new THREE.BufferGeometry()
+@@ -326,18 +343,18 @@
+   }
+   for (let j = 0; j < depthSegments; j += 1) {
+     pushQuad(groups[1],
+-      edgeVertex(vertex(0, widthSegments, j), j / depthSegments, 0),
+-      edgeVertex(vertex(1, widthSegments, j), j / depthSegments, 1),
+-      edgeVertex(vertex(1, widthSegments, j + 1), (j + 1) / depthSegments, 1),
+-      edgeVertex(vertex(0, widthSegments, j + 1), (j + 1) / depthSegments, 0))
++      edgeVertex(vertex(0, widthSegments, j), 0, j / depthSegments),
++      edgeVertex(vertex(1, widthSegments, j), 1, j / depthSegments),
++      edgeVertex(vertex(1, widthSegments, j + 1), 1, (j + 1) / depthSegments),
++      edgeVertex(vertex(0, widthSegments, j + 1), 0, (j + 1) / depthSegments))
+   }
+   for (const j of [0, depthSegments]) {
+     for (let i = 0; i < widthSegments; i += 1) {
+       pushQuad(groups[j === 0 ? 2 : 3],
+-        edgeVertex(vertex(0, i, j), i / widthSegments, 0),
+-        edgeVertex(vertex(0, i + 1, j), (i + 1) / widthSegments, 0),
+-        edgeVertex(vertex(1, i + 1, j), (i + 1) / widthSegments, 1),
+-        edgeVertex(vertex(1, i, j), i / widthSegments, 1), j === 0)
++        edgeVertex(vertex(0, i, j), columnU[i], 0),
++        edgeVertex(vertex(0, i + 1, j), columnU[i + 1], 0),
++        edgeVertex(vertex(1, i + 1, j), columnU[i + 1], 1),
++        edgeVertex(vertex(1, i, j), columnU[i], 1), j === 0)
+     }
+   }
+   const count = layerSize * 2 + edgeSources.length
+@@ -347,7 +364,7 @@
+     for (let j = 0; j <= depthSegments; j += 1) {
+       for (let i = 0; i <= widthSegments; i += 1) {
+         const k = vertex(layer, i, j)
+-        uvs[k * 2] = i / widthSegments
++        uvs[k * 2] = columnU[i]
+         uvs[k * 2 + 1] = j / depthSegments
+       }
+     }
+@@ -357,7 +374,7 @@
+   geometry.userData.surfaceVertexCount = layerSize * 2
+   geometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2))
+   finishIndexedGeometry(geometry, groups)
+-  return { geometry, widthSegments, depthSegments }
++  return { geometry, widthSegments, depthSegments, columnU }
+ }
+ 
+ const updateEdges = (geometry: THREE.BufferGeometry) => {
+@@ -397,6 +414,8 @@
+               (1 - u) ** 1.7 +
+             0.00024 * Math.sin(Math.PI * u) +
+             0.00045 * Math.sin(Math.PI * v) * Math.sin(Math.PI * u)
++          // Leave clearance for the thin leaves' clamped, initially flat root.
++          y -= 0.000075 * smoothstep(u / 0.014)
+         }
+         const index = layer * layerSize + depthIndex * row + widthIndex
+         positions.setXYZ(
+@@ -420,9 +439,9 @@
+ const leafAngle = (u: number, v: number, progress: number) => {
+   const turn = smootherStep(progress)
+   const envelope = Math.sin(Math.PI * turn)
+-  const fan = smoothstep(u / 0.048)
++  const fan = smoothstep(u / 0.014)
+   const targetSlope =
+-    -0.014 * 6 * u * (1 - u) +
++    OPEN_LEAF_DROP * 6 * u * (1 - u) +
+     0.0119 * Math.PI * Math.cos(Math.PI * u) +
+     0.00075 * Math.PI * Math.sin(Math.PI * v) * Math.cos(Math.PI * u)
+   const openAngle = fan * (Math.PI - Math.atan(targetSlope / PAGE_WIDTH))
+@@ -433,7 +452,7 @@
+     0.00105 * (9 * Math.exp(-u * 9) * (1 - u) ** 1.7 -
+       1.7 * (1 - Math.exp(-u * 9)) * (1 - u) ** 0.7) +
+     (0.00024 + 0.00045 * Math.sin(Math.PI * v)) * Math.PI * Math.cos(Math.PI * u)
+-  const closedAngle = Math.atan(closedSlope / PAGE_WIDTH)
++  const closedAngle = fan * Math.atan(closedSlope / PAGE_WIDTH)
+   const curl = 0.78 * envelope * Math.sin(Math.PI * u * 0.85) * fan
+   const corner = 0.095 * envelope * (v - 0.5) * u * u * fan
+   return THREE.MathUtils.lerp(closedAngle, openAngle, turn) + curl + corner
+@@ -455,6 +474,7 @@
+   geometry: THREE.BufferGeometry,
+   widthSegments: number,
+   depthSegments: number,
++  columnU: Float64Array,
+   profile: LeafProfile,
+   pageNumber: number,
+   turnProgress: number,
+@@ -465,18 +485,24 @@
+   const layerSize = row * (depthSegments + 1)
+   const root = spinePoint(1 - (pageNumber - 0.5) / TOTAL_PAGES, q)
+   root.x += COVER_THICKNESS * 0.5 + GLUE_THICKNESS
+-  const segmentLength = PAGE_WIDTH / widthSegments
++  const baseRoot = spinePoint(1 - (MAX_OPEN_PAGES - 0.5) / TOTAL_PAGES, q)
++  baseRoot.x += COVER_THICKNESS * 0.5 + GLUE_THICKNESS
++  const turn = smootherStep(turnProgress)
++  const rootDX = root.x - baseRoot.x
++  const rootDY = root.y - baseRoot.y
+   for (let depthIndex = 0; depthIndex <= depthSegments; depthIndex += 1) {
+     const v = depthIndex / depthSegments
+     const base = depthIndex * row
+-    profile.x[base] = root.x
+-    profile.y[base] = root.y
++    profile.x[base] = baseRoot.x
++    profile.y[base] = baseRoot.y
+     profile.angle[base] = leafAngle(0, v, turnProgress)
+     for (let i = 1; i <= widthSegments; i += 1) {
+-      const angle = leafAngle((i - 0.5) / widthSegments, v, turnProgress)
++      const u = columnU[i]
++      const segmentLength = PAGE_WIDTH * (u - columnU[i - 1])
++      const angle = leafAngle((u + columnU[i - 1]) * 0.5, v, turnProgress)
+       profile.x[base + i] = profile.x[base + i - 1] + segmentLength * Math.cos(angle)
+       profile.y[base + i] = profile.y[base + i - 1] + segmentLength * Math.sin(angle)
+-      profile.angle[base + i] = leafAngle(i / widthSegments, v, turnProgress)
++      profile.angle[base + i] = leafAngle(u, v, turnProgress)
+     }
+   }
+   for (let layer = 0; layer < 2; layer += 1) {
+@@ -486,16 +512,16 @@
+       for (let i = 0; i <= widthSegments; i += 1) {
+         const k = depthIndex * row + i
+         const angle = profile.angle[k]
+-        // Independent roots retain their original interval. After the short
+-        // binding fan, the later leaf lies above its predecessors on the left.
+-        // A tiny normal separation exposes edges without inflating thickness.
+-        const turn = smootherStep(turnProgress)
+-        const fan = smoothstep((i / widthSegments) / 0.1)
+-        const rootOffset = (MAX_OPEN_PAGES - pageNumber) * SINGLE_PAGE_THICKNESS
+-        const normalOffset = halfThickness + rootOffset * fan * turn
++        // Rotate the distinct root interval with the tangent. Interpolating
++        // between a vertical root offset and a normal offset compressed the
++        // stack inside the fan. This keeps adjacent leaves parallel there.
++        const fan = smoothstep(columnU[i] / 0.014)
++        const separation = 1 + 0.03 * fan * turn
++        const offsetX = separation * (rootDX * Math.cos(angle) - rootDY * Math.sin(angle))
++        const offsetY = separation * (rootDX * Math.sin(angle) + rootDY * Math.cos(angle))
+         positions.setXYZ(layer * layerSize + k,
+-          profile.x[k] - Math.sin(angle) * normalOffset,
+-          profile.y[k] + Math.cos(angle) * normalOffset - rootOffset * fan * turn,
++          profile.x[k] + offsetX - Math.sin(angle) * halfThickness,
++          profile.y[k] + offsetY + Math.cos(angle) * halfThickness,
+           (v - 0.5) * PAGE_HEIGHT)
+       }
+     }
+@@ -562,7 +588,9 @@
+   group.add(pageBlock.mesh)
+ 
+   const leaves = Array.from({ length: leafCount }, (_, index) => {
+-    const data = createGridSolidGeometry(96, 12)
++    // Concentrate samples at the tight binding bend, without making the entire
++    // sheet denser. Material coordinates and integration use the same spacing.
++    const data = createGridSolidGeometry(96, 12, 1.5)
+     const leaf: DynamicMesh = {
+       geometry: data.geometry,
+       mesh: new THREE.Mesh(data.geometry, [materials.paper, materials.leafEdge, materials.leafEdge, materials.leafEdge]),
+@@ -608,6 +636,7 @@
+           leaf.geometry,
+           leaf.widthSegments,
+           leaf.depthSegments,
++          leaf.columnU,
+           leaf.profile,
+           leaf.pageNumber,
+           progress,
